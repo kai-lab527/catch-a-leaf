@@ -9,9 +9,9 @@ class Player extends GameObject {
     this.spriteLoaded = false;
     
     // Tilt properties
-    this.tilt = 0;          // current rotation (radians)
-    this.targetTilt = 0;    // where we want to be
-    this.tiltSpeed = 8;     // smoothing speed
+    this.tilt = 0;
+    this.targetTilt = 0;
+    this.tiltSpeed = 8;
     
     this.loadSprite();
   }
@@ -34,7 +34,6 @@ class Player extends GameObject {
     }
   }
 
-  // --- Static pixel-art generator (fallback) ---
   static _playerSprite = null;
 
   static generatePixelSprite() {
@@ -74,21 +73,9 @@ class Player extends GameObject {
     return c;
   }
 
-  update(dt, keys, canvasWidth) {
-    let dx = 0;
-    if (keys['a'] || keys['arrowleft']) dx = -1;
-    if (keys['d'] || keys['arrowright']) dx = 1;
-    if (keys['w'] || keys['arrowup']) this.catchFlashTimer = 0.2;
-
-    this.x += dx * this.speed * dt;
-    this.x = Math.max(0, Math.min(this.x, canvasWidth - this.width));
-    this.bobPhase += dt * 3;
-
-    // Tilt smoothing
-    this.targetTilt = dx * 0.08; // ~4.5° max
+  updateTilt(dx, dt) {
+    this.targetTilt = dx * 0.08;
     this.tilt += (this.targetTilt - this.tilt) * Math.min(1, this.tiltSpeed * dt);
-
-    if (this.catchFlashTimer > 0) this.catchFlashTimer -= dt;
   }
 
   catchFlash() {
@@ -111,29 +98,24 @@ class Player extends GameObject {
     const cx = this.x + this.width / 2;
     const cy = this.y + this.height / 2;
 
-    // Shadow
     ctx.shadowBlur = 15;
     ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
-    // Move to center, apply bob and tilt
     ctx.translate(cx, cy);
     const bobY = Math.sin(this.bobPhase) * 2;
     ctx.translate(0, bobY);
-    ctx.rotate(this.tilt); // <-- tilt applied here
+    ctx.rotate(this.tilt);
 
-    // Catch flash glow
     if (this.catchFlashTimer > 0) {
       ctx.shadowBlur = 30;
       ctx.shadowColor = '#ffd700';
       ctx.globalAlpha = 0.5 + Math.sin(this.catchFlashTimer * 20) * 0.3;
     }
 
-    // Draw the basket sprite
     ctx.imageSmoothingEnabled = false;
     const size = this.width;
     ctx.drawImage(this.sprite, -size / 2, -size / 2, size, size);
 
-    // Flash rings (they tilt with the basket)
     if (this.catchFlashTimer > 0) {
       ctx.globalAlpha = this.catchFlashTimer / 0.3;
       ctx.shadowBlur = 0;

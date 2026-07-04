@@ -26,6 +26,10 @@ class Game {
 
     this.keys = {};
 
+    // Touch controls
+    this.touchX = null;
+    this.touchActive = false;
+
     // Background image
     this.backgroundImage = null;
     this.backgroundLoaded = false;
@@ -126,6 +130,7 @@ class Game {
   }
 
   setupInput() {
+    // --- Keyboard ---
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
@@ -134,23 +139,64 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
+    // --- Mouse click for leaves ---
     this.canvas.addEventListener('click', (e) => {
       if (this.state !== 'playing') return;
       const rect = this.canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
-      for (let i = this.leaves.length - 1; i >= 0; i--) {
-        const leaf = this.leaves[i];
-        if (leaf.isPointInside(mx, my) && !leaf.collected) {
-          this.collectLeaf(leaf, mx, my, true);
-          leaf.collect();
-          this.leaves.splice(i, 1);
-          const idx = this.entities.indexOf(leaf);
-          if (idx >= 0) this.entities.splice(idx, 1);
-          break;
-        }
-      }
+      this.handleLeafTap(mx, my);
     });
+
+    // --- Touch events ---
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (this.state !== 'playing') return;
+      const rect = this.canvas.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      const mx = touch.clientX - rect.left;
+      const my = touch.clientY - rect.top;
+
+      this.handleLeafTap(mx, my);
+
+      this.touchX = mx;
+      this.touchActive = true;
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (this.state !== 'playing' || !this.touchActive) return;
+      const rect = this.canvas.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      const mx = touch.clientX - rect.left;
+      this.touchX = mx;
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      this.touchActive = false;
+      this.touchX = null;
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      this.touchActive = false;
+      this.touchX = null;
+    }, { passive: false });
+  }
+
+  handleLeafTap(mx, my) {
+    for (let i = this.leaves.length - 1; i >= 0; i--) {
+      const leaf = this.leaves[i];
+      if (leaf.isPointInside(mx, my) && !leaf.collected) {
+        this.collectLeaf(leaf, mx, my, true);
+        leaf.collect();
+        this.leaves.splice(i, 1);
+        const idx = this.entities.indexOf(leaf);
+        if (idx >= 0) this.entities.splice(idx, 1);
+        break;
+      }
+    }
   }
 
   setupUI() {
@@ -303,7 +349,6 @@ class Game {
     if (clicked) value *= 1.5;
     value = Math.max(1, Math.round(value));
 
-    // Get HUD card positions for the animation
     const moneyCard = document.getElementById('moneyCard');
     const moneyRect = moneyCard ? moneyCard.getBoundingClientRect() : null;
     const canvasRect = this.canvas.getBoundingClientRect();
@@ -456,8 +501,51 @@ class Game {
     const { w, h } = this.getViewSize();
     const speedMul = this.skillTree.getSpeedMul();
     this.player.speed = 380 * speedMul;
-    this.player.update(dt, this.keys, w);
 
+    // --- Player movement: keyboard + touch ---
+    // First, get keyboard input
+    let dx = 0;
+    if (this.keys['a'] || this.keys['arrowleft']) dx = -1;
+    if (this.keys['d'] || this.keys['arrowright']) dx = 1;
+
+    // Then apply touch override if active
+    if (this.touchActive && this.touchX !== null) {
+      const targetX = this.touchX - this.player.width / 2;
+      const diff = targetX - this.player.x;
+      const maxSpeed = this.player.speed * dt;
+      if (Math.abs(diff) > 2) {
+        const move = Math.min(Math.abs(diff), maxSpeed) * Math.sign(diff);
+        this.player.x += move;
+        // Clamp immediately
+        this.player.x = Math.max(0, Math.min(this.player.x, w - this.player.width));
+        // Touch overrides keyboard – set dx to 0 so tilt doesn't fight
+        dx = 0;
+      } else {
+        // Snap to target if very close
+        this.player.x = targetX;
+        dx = 0;
+      }
+    }
+
+    // Apply keyboard movement (only if touch is NOT overriding)
+    if (dx !== 0 && !this.touchActive) {
+      this.player.x += dx * this.player.speed * dt;
+      this.player.x = Math.max(0, Math.min(this.player.x, w - this.player.width));
+    }
+
+    // Update player tilt and bob
+    this.player.updateTilt(dx, dt);
+    this.player.bobPhase += dt * 3;
+
+    // Catch flash timer
+    if (this.keys['w'] || this.keys['arrowup']) {
+      this.player.catchFlashTimer = 0.2;
+    }
+    if (this.player.catchFlashTimer > 0) {
+      this.player.catchFlashTimer -= dt;
+    }
+
+    // --- Spawn leaves ---
     this.spawnTimer -= dt;
     const rate = this.baseSpawnRate / this.skillTree.getSpawnMul();
     if (this.spawnTimer <= 0) {
@@ -472,6 +560,7 @@ class Game {
     catchBounds.x -= (catchBounds.width * (basketMul - 1)) / 2;
     catchBounds.width *= basketMul;
 
+    // --- Update leaves ---
     for (let i = this.leaves.length - 1; i >= 0; i--) {
       const leaf = this.leaves[i];
       
@@ -487,13 +576,13 @@ class Game {
         const cy = leaf.y + leaf.height / 2;
         const bx = catchBounds.x + catchBounds.width / 2;
         const by = catchBounds.y + catchBounds.height / 2;
-        const dx = bx - cx;
-        const dy = by - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx2 = bx - cx;
+        const dy2 = by - cy;
+        const dist = Math.sqrt(dx2 * dx2 + dy2 * dy2);
         if (dist < magnetRange && dist > 1) {
           const force = (1 - dist / magnetRange) * 200;
-          leaf.vx += (dx / dist) * force * dt;
-          leaf.vy += (dy / dist) * force * dt * 0.5;
+          leaf.vx += (dx2 / dist) * force * dt;
+          leaf.vy += (dy2 / dist) * force * dt * 0.5;
         }
       }
 
@@ -524,6 +613,7 @@ class Game {
       }
     }
 
+    // --- Combo timer ---
     if (this.comboTimer > 0) {
       this.comboTimer -= dt;
       if (this.comboTimer <= 0) {
@@ -532,6 +622,7 @@ class Game {
       }
     }
 
+    // --- Particles ---
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.update(dt);
@@ -542,6 +633,7 @@ class Game {
       }
     }
 
+    // --- Combo bar ---
     const bar = document.getElementById('comboBar');
     const fill = document.getElementById('comboFill');
     const txt = document.getElementById('comboText');
@@ -559,7 +651,6 @@ class Game {
     const { w, h } = this.getViewSize();
     const ctx = this.ctx;
 
-    // Draw background image if loaded, else fallback gradient
     if (this.backgroundLoaded && this.backgroundImage) {
       ctx.drawImage(this.backgroundImage, 0, 0, w, h);
     } else {
@@ -571,7 +662,6 @@ class Game {
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Stars (always on top of background)
     for (const s of this.stars) {
       const alpha = 0.4 + Math.sin(s.twinkle) * 0.4;
       ctx.save();
@@ -582,7 +672,6 @@ class Game {
       ctx.restore();
     }
 
-    // Background floating leaves
     for (const l of this.bgLeaves) {
       ctx.save();
       ctx.globalAlpha = l.alpha;
@@ -596,7 +685,6 @@ class Game {
       ctx.restore();
     }
 
-    // Ground shadow overlay
     ctx.fillStyle = 'rgba(15, 8, 20, 0.6)';
     ctx.beginPath();
     ctx.moveTo(0, h - 50);
@@ -643,7 +731,6 @@ class Game {
 
     for (const p of this.particles) p.draw(this.ctx);
 
-    // Draw floating stats (on top of everything)
     for (const fs of this.floatingStats) {
       if (!fs.alive) continue;
       
