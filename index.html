@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch-a-leaf-demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="hud">
+      <div class="hud-card" id="moneyCard">
+        <div class="hud-icon pixel-icon">¢</div>
+        <div class="hud-info">
+          <div class="hud-label">MONEY</div>
+          <div class="hud-value" id="moneyValue">0</div>
+        </div>
+      </div>
+      <div class="hud-card" id="leafCard">
+        <div class="hud-icon pixel-icon leaf-icon"></div>
+        <div class="hud-info">
+          <div class="hud-label">NEXT SP</div>
+          <div class="hud-value" id="leafValue">0 / 5</div>
+        </div>
+        <div class="leaf-progress-track">
+          <div class="leaf-progress-fill" id="leafProgressFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="hud-card" id="skillCard">
+        <div class="hud-icon pixel-icon sp-icon">★</div>
+        <div class="hud-info">
+          <div class="hud-label">SKILL PTS</div>
+          <div class="hud-value" id="skillValue">0</div>
+        </div>
+      </div>
+      <button id="skillBtn" class="neon-btn">SKILL SHOP</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-layer">
+      <div id="comboBar">
+        <div id="comboText">COMBO x0</div>
+        <div id="comboFill"></div>
+      </div>
+
+      <div id="floatingText"></div>
+
+      <div id="skillPanel" class="hidden">
+        <div class="panel-inner">
+          <div class="panel-header">
+            <h2>SKILL SHOP UPGRADE</h2>
+            <button id="closeSkill" class="close-btn">✕</button>
+          </div>
+          <div class="skill-points">
+            Points: <span id="availPoints">0</span>
+            <span class="skill-points-sep">·</span>
+            Money: <span id="availMoney">0</span>¢
+          </div>
+          <div id="skillGrid"></div>
+        </div>
+      </div>
+
+      <div id="startScreen">
+        <div class="title-glow">
+          <h1>CATCH-A-LEAF<br>DEMO</h1>
+          <p class="subtitle">Still in development, more features coming soon!</p>
+          <button id="startBtn" class="neon-btn big">START</button>
+          <p class="hint">Move: <span class="key">A/D</span> or <span class="key">←/→</span> · Catch / Click leaves to earn</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="GameObject.js"></script>
+  <script src="Particle.js"></script>
+  <script src="Leaf.js"></script>
+  <script src="Player.js"></script>
+  <script src="SkillTree.js"></script>
+  <script src="Game.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('gameCanvas');
+      if (canvas) {
+        window.game = new Game(canvas);
+      }
+    });
+  </script>
+</body>
+</html>
