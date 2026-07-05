@@ -30,6 +30,9 @@ class Game {
     this.touchX = null;
     this.touchActive = false;
 
+    // Audio
+    this.audio = new AudioManager();
+
     // Background image
     this.backgroundImage = null;
     this.backgroundLoaded = false;
@@ -130,27 +133,30 @@ class Game {
   }
 
   setupInput() {
-    // --- Keyboard ---
+    // Keyboard
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
+      this.audio.resumeContext();
     });
     window.addEventListener('keyup', (e) => {
       this.keys[e.key.toLowerCase()] = false;
     });
 
-    // --- Mouse click for leaves ---
+    // Mouse click for leaves
     this.canvas.addEventListener('click', (e) => {
       if (this.state !== 'playing') return;
+      this.audio.resumeContext();
       const rect = this.canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
       this.handleLeafTap(mx, my);
     });
 
-    // --- Touch events ---
+    // Touch events
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      this.audio.resumeContext();
       if (this.state !== 'playing') return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
@@ -203,8 +209,11 @@ class Game {
     document.getElementById('startBtn').addEventListener('click', () => {
       document.getElementById('startScreen').classList.add('hidden');
       this.state = 'playing';
+      this.audio.resumeContext();
+      this.audio.playMusic();
     });
     document.getElementById('skillBtn').addEventListener('click', () => {
+      this.audio.resumeContext();
       this.toggleSkillPanel(true);
     });
     document.getElementById('closeSkill').addEventListener('click', () => {
@@ -281,9 +290,11 @@ class Game {
       const id = node.dataset.id;
       node.addEventListener('click', (e) => {
         e.stopPropagation();
+        this.audio.resumeContext();
         const result = this.skillTree.buy(id, this.money);
         if (result.success) {
           this.money -= result.moneyCost;
+          this.audio.playBuy(); // <-- PLAY BUY SOUND
           this.spawnParticles(
             this.canvas.getBoundingClientRect().width / 2,
             this.canvas.getBoundingClientRect().height / 2,
@@ -348,6 +359,11 @@ class Game {
     if (leaf.blue) value += this.skillTree.getBlueValueBonus();
     if (clicked) value *= 1.5;
     value = Math.max(1, Math.round(value));
+
+    this.audio.playCollect();
+    if (this.combo > 1) {
+      this.audio.playCombo(this.combo);
+    }
 
     const moneyCard = document.getElementById('moneyCard');
     const moneyRect = moneyCard ? moneyCard.getBoundingClientRect() : null;
@@ -465,7 +481,6 @@ class Game {
       if (l.x > 1.1) l.x = -0.1;
     }
 
-    // Update floating stats
     for (let i = this.floatingStats.length - 1; i >= 0; i--) {
       const fs = this.floatingStats[i];
       
@@ -502,13 +517,10 @@ class Game {
     const speedMul = this.skillTree.getSpeedMul();
     this.player.speed = 380 * speedMul;
 
-    // --- Player movement: keyboard + touch ---
-    // First, get keyboard input
     let dx = 0;
     if (this.keys['a'] || this.keys['arrowleft']) dx = -1;
     if (this.keys['d'] || this.keys['arrowright']) dx = 1;
 
-    // Then apply touch override if active
     if (this.touchActive && this.touchX !== null) {
       const targetX = this.touchX - this.player.width / 2;
       const diff = targetX - this.player.x;
@@ -516,28 +528,22 @@ class Game {
       if (Math.abs(diff) > 2) {
         const move = Math.min(Math.abs(diff), maxSpeed) * Math.sign(diff);
         this.player.x += move;
-        // Clamp immediately
         this.player.x = Math.max(0, Math.min(this.player.x, w - this.player.width));
-        // Touch overrides keyboard – set dx to 0 so tilt doesn't fight
         dx = 0;
       } else {
-        // Snap to target if very close
         this.player.x = targetX;
         dx = 0;
       }
     }
 
-    // Apply keyboard movement (only if touch is NOT overriding)
     if (dx !== 0 && !this.touchActive) {
       this.player.x += dx * this.player.speed * dt;
       this.player.x = Math.max(0, Math.min(this.player.x, w - this.player.width));
     }
 
-    // Update player tilt and bob
     this.player.updateTilt(dx, dt);
     this.player.bobPhase += dt * 3;
 
-    // Catch flash timer
     if (this.keys['w'] || this.keys['arrowup']) {
       this.player.catchFlashTimer = 0.2;
     }
@@ -545,7 +551,6 @@ class Game {
       this.player.catchFlashTimer -= dt;
     }
 
-    // --- Spawn leaves ---
     this.spawnTimer -= dt;
     const rate = this.baseSpawnRate / this.skillTree.getSpawnMul();
     if (this.spawnTimer <= 0) {
@@ -560,7 +565,6 @@ class Game {
     catchBounds.x -= (catchBounds.width * (basketMul - 1)) / 2;
     catchBounds.width *= basketMul;
 
-    // --- Update leaves ---
     for (let i = this.leaves.length - 1; i >= 0; i--) {
       const leaf = this.leaves[i];
       
@@ -613,7 +617,6 @@ class Game {
       }
     }
 
-    // --- Combo timer ---
     if (this.comboTimer > 0) {
       this.comboTimer -= dt;
       if (this.comboTimer <= 0) {
@@ -622,7 +625,6 @@ class Game {
       }
     }
 
-    // --- Particles ---
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.update(dt);
@@ -633,7 +635,6 @@ class Game {
       }
     }
 
-    // --- Combo bar ---
     const bar = document.getElementById('comboBar');
     const fill = document.getElementById('comboFill');
     const txt = document.getElementById('comboText');
