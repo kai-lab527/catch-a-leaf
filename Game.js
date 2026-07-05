@@ -30,9 +30,10 @@ class Game {
     // Audio
     this.audio = new AudioManager();
 
-    // Frame-by-frame background animation
+    // Background frames
     this.bgFrames = [];
     this.bgLoaded = false;
+    this.bgLoadCount = 0;
     this.currentFrame = 0;
     this.frameTimer = 0;
     this.frameDelay = 1.0;
@@ -40,12 +41,11 @@ class Game {
     // Tooltip
     this.tooltip = document.getElementById('skillTooltip');
 
-    // Scale factor
+    // Scale
     this.scale = 1;
     this.viewW = 800;
     this.viewH = 600;
 
-    // Track if skill panel is open
     this.isSkillPanelOpen = false;
 
     this.setupResize();
@@ -67,22 +67,21 @@ class Game {
       'Sprites/background_image3.png'
     ];
 
-    let loadedCount = 0;
-
     frameFiles.forEach((src, index) => {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.src = src;
       img.onload = () => {
         this.bgFrames[index] = img;
-        loadedCount++;
-        if (loadedCount === frameFiles.length) {
+        this.bgLoadCount++;
+        if (this.bgLoadCount === frameFiles.length) {
           this.bgLoaded = true;
         }
       };
       img.onerror = () => {
         this.bgFrames[index] = null;
-        loadedCount++;
-        if (loadedCount === frameFiles.length) {
+        this.bgLoadCount++;
+        if (this.bgLoadCount === frameFiles.length) {
           this.bgLoaded = true;
         }
       };
@@ -111,12 +110,15 @@ class Game {
         return;
       }
 
-      const refWidth = 800;
+      // Reference size – we use 800x600 as base
       const refHeight = 600;
-      const scaleX = r.width / refWidth;
-      const scaleY = r.height / refHeight;
-      let newScale = Math.min(scaleX, scaleY);
-      newScale = Math.max(0.5, Math.min(1.8, newScale));
+      const refWidth = 800;
+      const scaleH = r.height / refHeight;
+      const scaleW = r.width / refWidth;
+      // Use the smaller scale to fit everything inside the viewport
+      let newScale = Math.min(scaleH, scaleW);
+      // Clamp: minimum 0.7 (good for mobile), maximum 1.6 (good for big screens)
+      newScale = Math.max(0.7, Math.min(1.6, newScale));
 
       this.scale = newScale;
       this.viewW = r.width;
@@ -134,6 +136,14 @@ class Game {
         this.player.y = r.height - 100 * this.scale;
         this.player.x = Math.min(this.player.x, r.width - size);
       }
+
+      // Update combo bar position dynamically
+      const comboBar = document.getElementById('comboBar');
+      if (comboBar) {
+        const hudHeight = document.getElementById('hud')?.getBoundingClientRect().height || 48;
+        const topOffset = Math.max(58, hudHeight + 14);
+        comboBar.style.top = (topOffset * this.scale) + 'px';
+      }
     };
     window.addEventListener('resize', fit);
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fit).observe(this.canvas);
@@ -147,7 +157,7 @@ class Game {
   }
 
   setupInput() {
-    // Keyboard for desktop
+    // Keyboard
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
@@ -157,7 +167,7 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
-    // Touch drag for mobile – no leaf tapping
+    // Touch drag (no leaf tap)
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.audio.forceResume();
@@ -166,7 +176,6 @@ class Game {
       const touch = e.changedTouches[0];
       const mx = touch.clientX - rect.left;
       const my = touch.clientY - rect.top;
-      // We do NOT tap leaves – only track touch for movement
       this.touchX = mx;
       this.touchActive = true;
     }, { passive: false });
@@ -192,7 +201,7 @@ class Game {
       this.touchX = null;
     }, { passive: false });
 
-    // No mouse click for leaves – desktop users cannot click leaves either
+    // No mouse click for leaves
   }
 
   setupUI() {
@@ -320,6 +329,7 @@ class Game {
     tooltip.classList.add('visible');
   }
 
+  // ---- FULL SKILL TREE RENDER ----
   renderSkillTree() {
     const grid = document.getElementById('skillGrid');
     const availPoints = this.skillTree.available;
@@ -482,7 +492,7 @@ class Game {
       }
     });
 
-    // Generate SVG lines
+    // ---- SVG lines ----
     let svgLines = `<svg class="tree-lines" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0;left:0;pointer-events:none;z-index:1;">`;
 
     connections.forEach(conn => {
@@ -518,7 +528,7 @@ class Game {
 
     svgLines += `</svg>`;
 
-    // Generate HTML nodes
+    // ---- HTML nodes ----
     let nodesHtml = '';
     const sizeMap = { large: 60, medium: 48, small: 36 };
 
@@ -562,7 +572,7 @@ class Game {
 
     grid.innerHTML = svgLines + nodesHtml;
 
-    // Bind events
+    // ---- Bind events ----
     grid.querySelectorAll('.skill-node').forEach(nodeEl => {
       const id = nodeEl.dataset.id;
 
@@ -634,7 +644,7 @@ class Game {
     });
   }
 
-  // ---- Spawning leaves ----
+  // ---- SPAWN LEAVES ----
   spawnLeaf() {
     const { w } = this.getViewSize();
     const scale = this.scale || 1;
@@ -650,7 +660,9 @@ class Game {
     }
     
     const baseSize = 0.7 + Math.random() * 0.3;
-    const size = baseSize * scale * 32;
+    // Minimum leaf size: 28px on mobile, scales up on larger screens
+    const minSize = 28 * (scale < 0.9 ? 1 : 1);
+    const size = Math.max(minSize, baseSize * scale * 32);
     const opts = { 
       size: size,
       type: type,
@@ -801,7 +813,6 @@ class Game {
       progressEl.style.width = pct + '%';
     }
 
-    // Live update skill panel if open
     if (this.isSkillPanelOpen) {
       const panelPoints = document.getElementById('availPoints');
       const panelMoney = document.getElementById('availMoney');
@@ -859,7 +870,6 @@ class Game {
     if (this.keys['a'] || this.keys['arrowleft']) dx = -1;
     if (this.keys['d'] || this.keys['arrowright']) dx = 1;
 
-    // Touch override
     if (this.touchActive && this.touchX !== null) {
       const targetX = this.touchX - this.player.width / 2;
       const diff = targetX - this.player.x;
@@ -992,17 +1002,16 @@ class Game {
     const ctx = this.ctx;
     const scale = this.scale || 1;
 
+    // Draw background frame if loaded, otherwise solid dark color
     if (this.bgLoaded && this.bgFrames[this.currentFrame]) {
       ctx.drawImage(this.bgFrames[this.currentFrame], 0, 0, w, h);
     } else {
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, '#1a0e2e');
-      grad.addColorStop(0.5, '#3d1f4a');
-      grad.addColorStop(1, '#5a2a3a');
-      ctx.fillStyle = grad;
+      // Solid dark fallback – no gradient flash
+      ctx.fillStyle = '#1a0e2e';
       ctx.fillRect(0, 0, w, h);
     }
 
+    // Ground shadow overlay
     ctx.fillStyle = 'rgba(15, 8, 20, 0.6)';
     ctx.beginPath();
     ctx.moveTo(0, h - 50 * scale);
