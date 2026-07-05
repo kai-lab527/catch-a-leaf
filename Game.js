@@ -147,6 +147,7 @@ class Game {
   }
 
   setupInput() {
+    // Keyboard for desktop
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
@@ -156,15 +157,7 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
-    this.canvas.addEventListener('click', (e) => {
-      this.audio.forceResume();
-      if (this.state !== 'playing') return;
-      const rect = this.canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      this.handleLeafTap(mx, my);
-    });
-
+    // Touch drag for mobile – no leaf tapping
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.audio.forceResume();
@@ -173,7 +166,7 @@ class Game {
       const touch = e.changedTouches[0];
       const mx = touch.clientX - rect.left;
       const my = touch.clientY - rect.top;
-      this.handleLeafTap(mx, my);
+      // We do NOT tap leaves – only track touch for movement
       this.touchX = mx;
       this.touchActive = true;
     }, { passive: false });
@@ -198,20 +191,8 @@ class Game {
       this.touchActive = false;
       this.touchX = null;
     }, { passive: false });
-  }
 
-  handleLeafTap(mx, my) {
-    for (let i = this.leaves.length - 1; i >= 0; i--) {
-      const leaf = this.leaves[i];
-      if (leaf.isPointInside(mx, my) && !leaf.collected) {
-        this.collectLeaf(leaf, mx, my, true);
-        leaf.collect();
-        this.leaves.splice(i, 1);
-        const idx = this.entities.indexOf(leaf);
-        if (idx >= 0) this.entities.splice(idx, 1);
-        break;
-      }
-    }
+    // No mouse click for leaves – desktop users cannot click leaves either
   }
 
   setupUI() {
@@ -803,7 +784,6 @@ class Game {
   }
 
   updateHUD() {
-    // Update main HUD
     const moneyEl = document.getElementById('moneyValue');
     const leafEl = document.getElementById('leafValue');
     const skillEl = document.getElementById('skillValue');
@@ -821,7 +801,7 @@ class Game {
       progressEl.style.width = pct + '%';
     }
 
-    // --- LIVE UPDATE: If skill panel is open, update its stats too ---
+    // Live update skill panel if open
     if (this.isSkillPanelOpen) {
       const panelPoints = document.getElementById('availPoints');
       const panelMoney = document.getElementById('availMoney');
@@ -879,6 +859,7 @@ class Game {
     if (this.keys['a'] || this.keys['arrowleft']) dx = -1;
     if (this.keys['d'] || this.keys['arrowright']) dx = 1;
 
+    // Touch override
     if (this.touchActive && this.touchX !== null) {
       const targetX = this.touchX - this.player.width / 2;
       const diff = targetX - this.player.x;
