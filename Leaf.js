@@ -1,37 +1,35 @@
 class Leaf extends GameObject {
   constructor(x, y, opts = {}) {
-    super(x, y, 32, 32);
+    const size = opts.size || 22.4;
+    super(x, y, size, size);
     this.name = 'Leaf';
-    this.vx = (Math.random() - 0.5) * 40;
-    this.vy = 40 + Math.random() * 30;
+    this.vx = (Math.random() - 0.5) * 40 * (opts.scale || 1);
+    this.vy = (40 + Math.random() * 30) * (opts.scale || 1);
     this.baseVy = this.vy;
     this.rot = Math.random() * Math.PI * 2;
     this.rotSpeed = (Math.random() - 0.5) * 2;
     this.swayPhase = Math.random() * Math.PI * 2;
-    this.swayAmp = 20 + Math.random() * 20;
+    this.swayAmp = (20 + Math.random() * 20) * (opts.scale || 1);
     this.time = 0;
     
-    // Three distinct leaf types
     this.type = opts.type || 'normal';
     this.golden = (this.type === 'golden');
     this.blue = (this.type === 'blue');
     
-    // Values – increased to match new costs
     if (this.type === 'golden') {
-      this.value = 40;        // was 25
+      this.value = 40;
     } else if (this.type === 'blue') {
-      this.value = 15;        // was 10
+      this.value = 15;
     } else {
-      this.value = 2 + Math.floor(Math.random() * 4); // 2–5 (was 1–3)
+      this.value = 2 + Math.floor(Math.random() * 4);
     }
     
     this.size = opts.size || 0.7;
-    this.width = 32 * this.size;
-    this.height = 32 * this.size;
+    this.width = size;
+    this.height = size;
     this.collected = false;
     this.pulse = 0;
 
-    // Load sprite (PNG preferred, fallback to pixel art)
     this.sprite = null;
     this.spriteLoaded = false;
     this.loadSprite();
@@ -63,7 +61,6 @@ class Leaf extends GameObject {
     }
   }
 
-  // --- Static sprite for background leaves (normal leaf PNG) ---
   static normalSprite = null;
   static normalSpriteLoaded = false;
 
@@ -86,7 +83,6 @@ class Leaf extends GameObject {
     }
   }
 
-  // --- Static pixel-art generator (fallback) ---
   static _spriteCache = {};
 
   static generatePixelSprite(type) {
@@ -179,7 +175,8 @@ class Leaf extends GameObject {
     const cy = this.y + this.height / 2;
     const dx = px - cx;
     const dy = py - cy;
-    return dx * dx + dy * dy <= (this.width / 2) * (this.width / 2);
+    const radius = this.width * 0.7;
+    return dx * dx + dy * dy <= radius * radius;
   }
 
   collect() {

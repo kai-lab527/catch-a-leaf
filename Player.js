@@ -1,6 +1,6 @@
 class Player extends GameObject {
-  constructor(x, y) {
-    super(x, y, 64, 64);
+  constructor(x, y, size = 64) {
+    super(x, y, size, size);
     this.name = 'Player';
     this.speed = 380;
     this.catchFlashTimer = 0;
@@ -8,7 +8,6 @@ class Player extends GameObject {
     this.sprite = null;
     this.spriteLoaded = false;
     
-    // Tilt properties
     this.tilt = 0;
     this.targetTilt = 0;
     this.tiltSpeed = 8;
@@ -18,15 +17,16 @@ class Player extends GameObject {
 
   loadSprite() {
     const img = new Image();
-    img.src = 'Sprites/player_basket.png';
+    img.src = 'Sprites/player_trashbin.png';
     img.onload = () => {
       this.sprite = img;
       this.spriteLoaded = true;
+      console.log('✅ Player trash bin sprite loaded');
     };
     img.onerror = () => {
       this.sprite = Player.generatePixelSprite();
       this.spriteLoaded = true;
-      console.warn('Using fallback player sprite (failed to load player_basket.png)');
+      console.warn('Using fallback player sprite (failed to load player_trashbin.png)');
     };
     if (img.complete && img.naturalWidth > 0) {
       this.sprite = img;
@@ -49,9 +49,9 @@ class Player extends GameObject {
     const pattern = [
       [0,0,0,0,0,0],
       [0,0,1,1,0,0],
-      [0,1,2,2,1,0],
-      [1,2,3,3,2,1],
       [0,1,1,1,1,0],
+      [1,1,2,2,1,1],
+      [0,1,2,2,1,0],
       [0,0,1,1,0,0]
     ];
 
@@ -61,9 +61,8 @@ class Player extends GameObject {
         const v = pattern[y][x];
         if (v === 0) continue;
         let color;
-        if (v === 1) color = '#8B6B4D';
-        else if (v === 2) color = '#A8896B';
-        else if (v === 3) color = '#C4A88A';
+        if (v === 1) color = '#5a7a5a';
+        else if (v === 2) color = '#3a5a3a';
         g.fillStyle = color;
         g.fillRect(x * px, y * px, px, px);
       }

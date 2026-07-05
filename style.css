@@ -55,7 +55,7 @@ body, html {
 #ui-layer > * { pointer-events: auto; }
 
 /* ==========================================
-   PIXEL HUD
+   HUD
    ========================================== */
 #hud {
   grid-row: 1;
@@ -244,6 +244,12 @@ body, html {
   border-color: #ffd700;
   box-shadow: inset 0 -6px 0 #a04a0a, 6px 6px 0 #0f0a1a;
 }
+.neon-btn.small {
+  padding: 6px 12px;
+  font-size: 8px;
+  margin: 8px auto 0;
+  display: block;
+}
 
 /* ==========================================
    COMBO BAR
@@ -312,178 +318,51 @@ body, html {
 }
 
 /* ==========================================
-   SKILL TREE
+   SKILL TOOLTIP
    ========================================== */
-#skillGrid {
-  padding: 10px 0;
+#skillTooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(10, 5, 20, 0.92);
+  border: 3px solid #ff8c1a;
+  padding: 10px 14px;
+  max-width: 260px;
+  box-shadow: inset 0 0 0 2px #3a2a1a, 6px 6px 0 #0f0a1a;
+  z-index: 500;
+  display: none;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  image-rendering: pixelated;
 }
-
-.skill-tree-container {
-  display: flex;
-  justify-content: space-around;
-  gap: 20px;
-  padding: 10px 0;
-  flex-wrap: wrap;
+#skillTooltip.visible {
+  display: block;
 }
-
-.skill-branch {
-  flex: 1;
-  min-width: 180px;
-  max-width: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(15, 10, 26, 0.6);
-  border: 4px solid var(--branch-color, #ffd700);
-  padding: 10px 8px 16px;
-  box-shadow: inset 0 0 0 2px #0f0a1a, 4px 4px 0 #0f0a1a;
-}
-
-.branch-header {
-  font-size: 11px;
-  color: var(--branch-color, #ffd700);
+#skillTooltip .tooltip-name {
+  color: #ffd700;
+  font-size: 10px;
+  margin-bottom: 4px;
   text-shadow: 2px 2px 0 #0f0a1a;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-  text-align: center;
-  border-bottom: 4px solid var(--branch-color, #ffd700);
-  padding-bottom: 6px;
-  width: 100%;
 }
-
-.branch-nodes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 4px;
-}
-
-.skill-node-wrapper {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.skill-node {
-  width: 100%;
-  background: #221a2e;
-  border: 4px solid #4a3a5a;
-  padding: 8px 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.08s linear;
-  box-shadow: inset 0 0 0 2px #0f0a1a, 3px 3px 0 #0f0a1a;
-  position: relative;
-}
-
-.skill-node:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 0 0 2px #0f0a1a, 3px 5px 0 #0f0a1a;
-}
-
-.skill-node:active {
-  transform: translateY(3px);
-  box-shadow: inset 0 0 0 2px #0f0a1a, 3px 1px 0 #0f0a1a;
-}
-
-.skill-node.can-buy {
-  border-color: var(--accent, #ffd700);
-  background: #2a1a3a;
-}
-
-.skill-node.can-buy:hover {
-  background: #3a2a4a;
-}
-
-.skill-node.maxed {
-  cursor: default;
-  border-color: #7cb342;
-  background: #1a2a1a;
-  opacity: 0.7;
-}
-.skill-node.maxed:hover {
-  transform: none;
-  box-shadow: inset 0 0 0 2px #0f0a1a, 3px 3px 0 #0f0a1a;
-}
-
-.skill-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 36px;
-  text-align: center;
-  filter: drop-shadow(0 0 4px var(--accent, #ffd700));
-}
-
-.skill-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.skill-name {
-  font-size: 9px;
-  color: var(--accent, #ffd700);
-  text-shadow: 1px 1px 0 #0f0a1a;
-  letter-spacing: 0.5px;
-}
-
-.skill-desc {
-  font-size: 7px;
+#skillTooltip .tooltip-desc {
   color: #b19cd9;
-  line-height: 1.3;
+  font-size: 8px;
+  line-height: 1.5;
+  text-shadow: 1px 1px 0 #0f0a1a;
 }
-
-.skill-level {
-  display: flex;
-  gap: 3px;
-  margin-top: 2px;
+#skillTooltip .tooltip-cost {
+  color: #ff6b1a;
+  font-size: 8px;
+  margin-top: 4px;
+  text-shadow: 1px 1px 0 #0f0a1a;
 }
-
-.skill-pip {
-  width: 7px;
-  height: 7px;
-  border: 1px solid #4a3a5a;
-  background: #0f0a1a;
-}
-.skill-pip.filled {
-  background: var(--accent, #ffd700);
-  border-color: var(--accent, #ffd700);
-  box-shadow: 0 0 4px var(--accent, #ffd700);
-}
-
-.skill-cost {
+#skillTooltip .tooltip-level {
+  color: #7cb342;
   font-size: 7px;
   margin-top: 2px;
-}
-.skill-cost .cost-sp { color: #b19cd9; }
-.skill-cost .cost-money { color: #ffd700; }
-.skill-node.maxed .skill-cost { color: #7cb342; }
-
-.skill-connector {
-  width: 4px;
-  height: 10px;
-  background: #4a3a5a;
-  margin: 2px 0;
-  box-shadow: 1px 1px 0 #0f0a1a;
-}
-
-.deny-shake {
-  animation: denyShake 0.3s ease;
-}
-@keyframes denyShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  text-shadow: 1px 1px 0 #0f0a1a;
 }
 
 /* ==========================================
-   SKILL PANEL
+   SKILL TREE
    ========================================== */
 #skillPanel {
   position: absolute;
@@ -499,11 +378,11 @@ body, html {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .panel-inner {
-  width: min(740px, 94%);
-  max-height: 85%;
+  width: min(820px, 96%);
+  max-height: 88%;
   background: #1a0e2e;
   border: 6px solid #ff8c1a;
-  padding: 20px;
+  padding: 14px 18px;
   box-shadow: inset 0 0 0 4px #3a2a1a, 8px 8px 0 #0f0a1a;
   overflow-y: auto;
   animation: panelPop 0.2s steps(8);
@@ -517,7 +396,7 @@ body, html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 .panel-header h2 {
   color: #ffd700;
@@ -546,12 +425,225 @@ body, html {
   text-align: center;
   color: #b19cd9;
   font-size: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   letter-spacing: 1px;
   text-shadow: 2px 2px 0 #0f0a1a;
 }
 .skill-points span { color: #ffd700; font-size: 15px; }
 .skill-points-sep { color: #6b5a80; margin: 0 10px; }
+
+/* Tree container */
+.tree-container {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 440px;
+}
+
+#skillGrid {
+  flex: 1;
+  position: relative;
+  min-height: 440px;
+  background: rgba(15, 10, 26, 0.4);
+  border: 4px solid #3a2a4a;
+  box-shadow: inset 0 0 0 2px #0f0a1a;
+  overflow: visible;
+}
+
+/* SVG connector lines */
+.tree-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  shape-rendering: crispEdges;
+}
+
+/* Node wrapper */
+.skill-node-wrapper {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ===== SKILL NODE ===== */
+.skill-node {
+  border-radius: 50%;
+  border: 4px solid #4a3a5a;
+  background: #1a1222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 2px #0f0a1a, 3px 3px 0 #0f0a1a;
+  transition: all 0.08s linear;
+  position: relative;
+  cursor: pointer;
+}
+
+.skill-node .skill-icon {
+  line-height: 1;
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.1));
+  position: relative;
+  z-index: 2;
+}
+
+/* ---- Node states ---- */
+
+/* Locked (always dark) */
+.skill-node.locked {
+  border-color: #2a1a2a;
+  background: #0a080a;
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+}
+.skill-node.locked .skill-icon {
+  filter: grayscale(1) brightness(0.5);
+}
+
+/* Lock overlay */
+.lock-overlay {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 10px;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
+  z-index: 3;
+}
+
+/* ===== ROOT NODE ===== */
+.skill-node.root-unaffordable {
+  border-color: #ff3a3a;
+  background: #3a0a0a;
+  box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 12px rgba(255,58,58,0.3);
+  cursor: pointer;
+}
+.skill-node.root-affordable {
+  border-color: #4caf50;
+  background: linear-gradient(135deg, #2e7d32, #66bb6a);
+  box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 20px rgba(76, 175, 80, 0.5);
+  animation: greenPulse 1.8s ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes greenPulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 20px rgba(76,175,80,0.5); }
+  50% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 35px rgba(76,175,80,0.9); }
+}
+.skill-node.root-affordable .skill-icon {
+  filter: brightness(0.2) sepia(1) saturate(2);
+}
+.skill-node.root-unaffordable .skill-icon {
+  filter: grayscale(0.5);
+}
+.skill-node.root-purchased {
+  border-color: #ffd700;
+  background: #ffd700;
+  box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 24px #ffd700;
+  animation: masteredPulse 2.5s ease-in-out infinite;
+  cursor: pointer;
+}
+.skill-node.root-purchased .skill-icon {
+  filter: brightness(0.15) sepia(1) saturate(2);
+}
+
+/* ===== NORMAL SKILLS ===== */
+/* Available (can buy) – green */
+.skill-node.available {
+  border-color: #4caf50;
+  background: #1a1222;
+  animation: greenGlow 1.8s ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes greenGlow {
+  0%, 100% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 8px rgba(76, 175, 80, 0.3); }
+  50% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 20px rgba(76, 175, 80, 0.7); }
+}
+.skill-node.available:hover {
+  transform: scale(1.12);
+  transition: transform 0.06s linear;
+}
+
+/* Purchased (already bought) – branch colour */
+.skill-node.purchased {
+  border-color: var(--accent, #ffd700);
+  background: var(--accent, #ffd700);
+  box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 14px var(--accent, rgba(255,215,0,0.4));
+  cursor: pointer;
+}
+.skill-node.purchased .skill-icon {
+  filter: brightness(0.2) sepia(1) saturate(2);
+}
+
+/* Mastered – gold */
+.skill-node.mastered {
+  border-color: #ffd700;
+  background: #ffd700;
+  box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 24px #ffd700;
+  animation: masteredPulse 2.5s ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes masteredPulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 24px #ffd700; }
+  50% { box-shadow: inset 0 0 0 2px #0f0a1a, 0 0 40px #ffd700; }
+}
+.skill-node.mastered .skill-icon {
+  filter: brightness(0.15) sepia(1) saturate(2);
+}
+
+/* Mastered star indicator */
+.mastered-star {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 14px;
+  filter: drop-shadow(0 0 8px #ffd700);
+  animation: starSpin 4s linear infinite;
+  z-index: 3;
+}
+@keyframes starSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ---- Pips ---- */
+.skill-pips {
+  position: absolute;
+  bottom: -16px;
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  width: 100%;
+}
+.skill-pip {
+  width: 5px;
+  height: 5px;
+  border: 1px solid #4a3a5a;
+  background: #0f0a1a;
+  border-radius: 1px;
+}
+.skill-pip.filled {
+  background: var(--accent, #ffd700);
+  border-color: var(--accent, #ffd700);
+  box-shadow: 0 0 4px var(--accent, #ffd700);
+}
+
+/* Deny shake animation */
+.deny-shake {
+  animation: denyShake 0.3s ease;
+}
+@keyframes denyShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
 
 /* ==========================================
    START SCREEN
@@ -626,4 +718,20 @@ body, html {
 .panel-inner::-webkit-scrollbar-thumb {
   background: #6b3a80;
   border: 3px solid #b19cd9;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 600px) {
+  .panel-inner { padding: 10px 12px; }
+  .skill-node-wrapper .skill-node { width: 36px !important; height: 36px !important; font-size: 14px !important; }
+  .skill-pips { bottom: -12px; }
+  .skill-pip { width: 4px; height: 4px; }
+  .mastered-star { font-size: 10px; top: -6px; right: -6px; }
+  .lock-overlay { font-size: 8px; top: -2px; right: -2px; }
+  #skillTooltip { max-width: 180px; padding: 6px 10px; }
+  #skillTooltip .tooltip-name { font-size: 8px; }
+  #skillTooltip .tooltip-desc { font-size: 7px; }
+  #skillTooltip .tooltip-cost { font-size: 7px; }
 }
