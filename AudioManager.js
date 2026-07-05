@@ -31,13 +31,13 @@ class AudioManager {
         this.loadBuffer('sounds/collect_catch_a_leaf.mp3'),
         this.loadBuffer('sounds/music_loop_catch_a_leaf.mp3'),
         this.loadBuffer('sounds/combo_catch_a_leaf.mp3'),
-        this.loadBuffer('sounds/buy_catch_a_leaf.mp3') // <-- NEW
+        this.loadBuffer('sounds/buy_catch_a_leaf.mp3')
       ]);
 
       this.sounds.collect = collect;
       this.sounds.music = music;
       this.sounds.combo = combo;
-      this.sounds.buy = buy; // <-- NEW
+      this.sounds.buy = buy;
 
       this.ready = true;
       this.loading = false;
@@ -46,7 +46,7 @@ class AudioManager {
       console.log('  collect:', !!collect);
       console.log('  music:', !!music);
       console.log('  combo:', !!combo);
-      console.log('  buy:', !!buy); // <-- NEW
+      console.log('  buy:', !!buy);
 
       if (this._pendingMusic) {
         this._pendingMusic = false;
@@ -77,18 +77,31 @@ class AudioManager {
     });
   }
 
-  resumeContext() {
-    if (this.ctx && this.ctx.state === 'suspended') {
+  forceResume() {
+    if (!this.ctx) {
+      console.warn('No audio context');
+      return;
+    }
+    
+    if (this.ctx.state === 'suspended') {
       this.ctx.resume().then(() => {
-        console.log('Audio context resumed');
+        console.log('✅ Audio context resumed successfully!');
+        if (this._pendingMusic) {
+          this._pendingMusic = false;
+          this.playMusic();
+        }
       }).catch(e => {
-        console.warn('Failed to resume audio context', e);
+        console.warn('Failed to resume audio context:', e);
       });
+    } else if (this.ctx.state === 'running') {
+      console.log('✅ Audio context already running');
+    } else {
+      console.log('Audio context state:', this.ctx.state);
     }
   }
 
   playCollect() {
-    this.resumeContext();
+    this.forceResume();
     if (!this.ctx || !this.ready || !this.sounds.collect) return;
     try {
       const source = this.ctx.createBufferSource();
@@ -103,8 +116,8 @@ class AudioManager {
     }
   }
 
-  playBuy() { // <-- NEW METHOD
-    this.resumeContext();
+  playBuy() {
+    this.forceResume();
     if (!this.ctx || !this.ready || !this.sounds.buy) return;
     try {
       const source = this.ctx.createBufferSource();
@@ -120,7 +133,7 @@ class AudioManager {
   }
 
   playMusic() {
-    this.resumeContext();
+    this.forceResume();
     if (!this.ctx) return;
     if (this.musicSource) return;
     if (!this.ready) {
@@ -138,7 +151,7 @@ class AudioManager {
       this.musicSource.connect(this.musicGain);
       this.musicGain.connect(this.ctx.destination);
       this.musicSource.start();
-      console.log('Music started');
+      console.log('🎵 Music started!');
     } catch(e) {
       console.warn('Music play failed', e);
     }
@@ -159,7 +172,7 @@ class AudioManager {
 
   playCombo(combo) {
     if (combo < 2) return;
-    this.resumeContext();
+    this.forceResume();
     if (!this.ctx || !this.ready || !this.sounds.combo) return;
     try {
       const source = this.ctx.createBufferSource();

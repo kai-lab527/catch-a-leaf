@@ -137,7 +137,7 @@ class Game {
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
-      this.audio.resumeContext();
+      this.audio.forceResume();
     });
     window.addEventListener('keyup', (e) => {
       this.keys[e.key.toLowerCase()] = false;
@@ -145,8 +145,8 @@ class Game {
 
     // Mouse click for leaves
     this.canvas.addEventListener('click', (e) => {
+      this.audio.forceResume();
       if (this.state !== 'playing') return;
-      this.audio.resumeContext();
       const rect = this.canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
@@ -156,7 +156,7 @@ class Game {
     // Touch events
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      this.audio.resumeContext();
+      this.audio.forceResume();
       if (this.state !== 'playing') return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
@@ -209,11 +209,11 @@ class Game {
     document.getElementById('startBtn').addEventListener('click', () => {
       document.getElementById('startScreen').classList.add('hidden');
       this.state = 'playing';
-      this.audio.resumeContext();
+      this.audio.forceResume();
       this.audio.playMusic();
     });
     document.getElementById('skillBtn').addEventListener('click', () => {
-      this.audio.resumeContext();
+      this.audio.forceResume();
       this.toggleSkillPanel(true);
     });
     document.getElementById('closeSkill').addEventListener('click', () => {
@@ -290,11 +290,11 @@ class Game {
       const id = node.dataset.id;
       node.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.audio.resumeContext();
+        this.audio.forceResume();
         const result = this.skillTree.buy(id, this.money);
         if (result.success) {
           this.money -= result.moneyCost;
-          this.audio.playBuy(); // <-- PLAY BUY SOUND
+          this.audio.playBuy();
           this.spawnParticles(
             this.canvas.getBoundingClientRect().width / 2,
             this.canvas.getBoundingClientRect().height / 2,
