@@ -49,7 +49,7 @@ html, body {
 #ui-layer > * { pointer-events: auto; }
 
 /* ==========================================
-   HUD – fully responsive (uses vmin)
+   HUD – two rows: stats top, combo bottom
    ========================================== */
 #hud {
   position: absolute;
@@ -57,24 +57,31 @@ html, body {
   left: 0;
   right: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: flex-start;
   padding: 1.2vmin 2vmin;
   background: transparent !important;
   border: none !important;
   z-index: 10;
   pointer-events: none;
   width: 100%;
+  gap: 1.2vmin;
 }
 #hud > * { pointer-events: auto; }
+
+/* TOP ROW: stats + button */
+.hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
 
 .hud-left {
   display: flex;
   align-items: center;
   gap: 1.2vmin;
   flex-shrink: 0;
-  pointer-events: none;
 }
 .hud-left > * { pointer-events: auto; }
 
@@ -82,10 +89,17 @@ html, body {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  pointer-events: none;
 }
 .hud-right > * { pointer-events: auto; }
 
+/* BOTTOM ROW: combo bar */
+.hud-bottom {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ===== STAT WIDGETS (same as before) ===== */
 .hud-stat {
   display: flex;
   align-items: center;
@@ -110,8 +124,6 @@ html, body {
   filter: drop-shadow(0 0.1vmin 0.2vmin rgba(0,0,0,0.4));
   transition: all 0.08s linear;
 }
-.hud-icon.leaf-icon { font-size: 2vmin; }
-.hud-icon.sp-icon { font-size: 2vmin; }
 
 /* Money glow */
 .hud-icon.money-glow {
@@ -174,7 +186,54 @@ html, body {
 }
 
 /* ==========================================
-   BUTTONS – responsive
+   COMBO BAR – now in HUD bottom row
+   ========================================== */
+#comboBar {
+  width: min(45vmin, 60%);
+  height: 2.2vmin;
+  background: rgba(30, 20, 15, 0.8);
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
+  image-rendering: pixelated;
+  backdrop-filter: blur(0.2vmin);
+}
+#comboBar.active { opacity: 1; }
+
+#comboFill {
+  height: 100%;
+  width: 0%;
+  background: repeating-linear-gradient(
+    90deg,
+    #e8701a 0px,
+    #e8701a 8px,
+    #f5a842 8px,
+    #f5a842 16px,
+    #c84a1a 16px,
+    #c84a1a 24px
+  );
+  transition: width 0.08s linear;
+}
+
+#comboText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5e8d8;
+  font-size: 0.9vmin;
+  letter-spacing: 0.1vmin;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
+  z-index: 2;
+  font-weight: bold;
+}
+
+/* ==========================================
+   BUTTONS
    ========================================== */
 .neon-btn {
   background: rgba(30, 20, 15, 0.8);
@@ -222,57 +281,6 @@ html, body {
   transform: translateY(-0.3vmin);
   box-shadow: 0.5vmin 0.7vmin 0 rgba(10, 5, 3, 0.6);
   background: rgba(50, 35, 25, 0.9);
-}
-
-/* ==========================================
-   COMBO BAR
-   ========================================== */
-#comboBar {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 10vh;
-  width: min(45vmin, 55%);
-  height: 2.2vmin;
-  background: rgba(30, 20, 15, 0.8);
-  border: 0.25vmin solid #6b3a1a;
-  border-radius: 0.3vmin;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.25s;
-  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
-  image-rendering: pixelated;
-  z-index: 50;
-  backdrop-filter: blur(0.2vmin);
-}
-#comboBar.active { opacity: 1; }
-
-#comboFill {
-  height: 100%;
-  width: 0%;
-  background: repeating-linear-gradient(
-    90deg,
-    #e8701a 0px,
-    #e8701a 8px,
-    #f5a842 8px,
-    #f5a842 16px,
-    #c84a1a 16px,
-    #c84a1a 24px
-  );
-  transition: width 0.08s linear;
-}
-#comboText {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f5e8d8;
-  font-size: 1vmin;
-  letter-spacing: 0.1vmin;
-  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
-  z-index: 2;
-  font-weight: bold;
 }
 
 /* ==========================================
@@ -339,7 +347,7 @@ html, body {
 }
 
 /* ==========================================
-   SKILL TREE PANEL – responsive
+   SKILL TREE PANEL
    ========================================== */
 #skillPanel {
   position: absolute;
@@ -597,7 +605,7 @@ html, body {
 }
 
 /* ==========================================
-   START SCREEN – responsive
+   START SCREEN
    ========================================== */
 #startScreen {
   position: absolute;
@@ -686,9 +694,13 @@ html, body {
 }
 
 /* ==========================================
-   RESPONSIVE – small screens (< 600px)
+   RESPONSIVE TWEAKS
    ========================================== */
 @media (max-width: 600px) {
+  #hud {
+    padding: 0.8vmin 1.6vmin;
+    gap: 0.8vmin;
+  }
   .hud-stat {
     padding: 0.4vmin 1.2vmin 0.4vmin 0.6vmin;
     min-height: 3.8vmin;
@@ -704,30 +716,21 @@ html, body {
   .hud-value {
     font-size: 1.5vmin;
   }
+  #comboBar {
+    height: 1.8vmin;
+  }
+  #comboText {
+    font-size: 0.7vmin;
+  }
   .neon-btn {
     font-size: 0.8vmin;
     padding: 0.6vmin 1.6vmin;
     min-height: 3.8vmin;
-    border-width: 0.2vmin;
   }
   .neon-btn.big {
     padding: 1.6vmin 3.5vmin;
     font-size: 1.8vmin;
     min-height: 5.5vmin;
-    border-width: 0.3vmin;
-  }
-  #comboBar {
-    height: 1.8vmin;
-    bottom: 8vh;
-  }
-  #comboText {
-    font-size: 0.8vmin;
-  }
-  .title-glow h1 {
-    font-size: clamp(3vmin, 6.5vmin, 5vmin);
-  }
-  .subtitle {
-    font-size: clamp(1vmin, 1.4vmin, 1.4vmin);
   }
   .panel-inner {
     padding: 1.2vmin 1.6vmin;
@@ -740,58 +743,26 @@ html, body {
     height: 3.2vmin;
     font-size: 1.6vmin;
   }
-  .skill-points {
-    font-size: 0.9vmin;
-  }
-  .skill-points span {
-    font-size: 1.3vmin;
-  }
-  #skillGrid {
-    min-height: 35vmin;
-  }
   .skill-node {
     width: 5.5vmin;
     height: 5.5vmin;
     font-size: 2.2vmin;
-    border-width: 0.2vmin;
-  }
-  .skill-pips {
-    bottom: -1.4vmin;
-  }
-  .skill-pip {
-    width: 0.5vmin;
-    height: 0.5vmin;
-  }
-  .mastered-star {
-    font-size: 1.2vmin;
-    top: -0.8vmin;
-    right: -0.8vmin;
-  }
-  .lock-overlay {
-    font-size: 1vmin;
-    top: -0.3vmin;
-    right: -0.3vmin;
   }
   .falling-leaf {
     width: 3vmin !important;
     height: 3vmin !important;
   }
-  .float-text {
-    font-size: 1.2vmin;
-  }
 }
 
-/* ==========================================
-   RESPONSIVE – very small phones (< 400px)
-   ========================================== */
 @media (max-width: 400px) {
+  #hud {
+    padding: 0.5vmin 1vmin;
+    gap: 0.5vmin;
+  }
   .hud-stat {
     padding: 0.3vmin 0.8vmin 0.3vmin 0.4vmin;
     min-height: 3.2vmin;
     gap: 0.4vmin;
-  }
-  .hud-left {
-    gap: 0.8vmin;
   }
   .hud-icon {
     font-size: 1.3vmin;
@@ -803,6 +774,12 @@ html, body {
   .hud-value {
     font-size: 1.2vmin;
   }
+  #comboBar {
+    height: 1.4vmin;
+  }
+  #comboText {
+    font-size: 0.6vmin;
+  }
   .neon-btn {
     font-size: 0.6vmin;
     padding: 0.4vmin 1.2vmin;
@@ -813,69 +790,13 @@ html, body {
     font-size: 1.4vmin;
     min-height: 4.5vmin;
   }
-  #comboBar {
-    height: 1.4vmin;
-    bottom: 6vh;
-  }
-  #comboText {
-    font-size: 0.6vmin;
-  }
-  .title-glow h1 {
-    font-size: clamp(2.5vmin, 5vmin, 4vmin);
-  }
-  .subtitle {
-    font-size: clamp(0.8vmin, 1.1vmin, 1.1vmin);
-    margin-top: 1vmin;
-  }
-  .panel-inner {
-    padding: 0.8vmin 1.2vmin;
-  }
-  .panel-header h2 {
-    font-size: 1.3vmin;
-  }
-  .close-btn {
-    width: 2.8vmin;
-    height: 2.8vmin;
-    font-size: 1.3vmin;
-  }
-  .skill-points {
-    font-size: 0.7vmin;
-  }
-  .skill-points span {
-    font-size: 1.1vmin;
-  }
-  #skillGrid {
-    min-height: 30vmin;
-  }
   .skill-node {
     width: 4.8vmin;
     height: 4.8vmin;
     font-size: 1.8vmin;
-    border-width: 0.15vmin;
-  }
-  .skill-pips {
-    bottom: -1.2vmin;
-    gap: 0.15vmin;
-  }
-  .skill-pip {
-    width: 0.4vmin;
-    height: 0.4vmin;
-  }
-  .mastered-star {
-    font-size: 1vmin;
-    top: -0.6vmin;
-    right: -0.6vmin;
-  }
-  .lock-overlay {
-    font-size: 0.8vmin;
-    top: -0.2vmin;
-    right: -0.2vmin;
   }
   .falling-leaf {
     width: 2.5vmin !important;
     height: 2.5vmin !important;
-  }
-  .float-text {
-    font-size: 1vmin;
   }
 }

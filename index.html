@@ -8,52 +8,57 @@
 </head>
 <body>
   <div id="gameContainer">
-    <!-- HUD – floating widgets -->
+    <!-- HUD with two rows -->
     <div id="hud">
-      <div class="hud-left">
-        <!-- MONEY -->
-        <div class="hud-stat" id="moneyCard">
-          <span class="hud-icon" id="moneyIcon">¢</span>
-          <div class="hud-info">
-            <span class="hud-label">MONEY</span>
-            <span class="hud-value" id="moneyValue">0</span>
+      <!-- TOP ROW: stats + button -->
+      <div class="hud-top">
+        <div class="hud-left">
+          <!-- MONEY -->
+          <div class="hud-stat" id="moneyCard">
+            <span class="hud-icon" id="moneyIcon">¢</span>
+            <div class="hud-info">
+              <span class="hud-label">MONEY</span>
+              <span class="hud-value" id="moneyValue">0</span>
+            </div>
+          </div>
+
+          <!-- NEXT SP -->
+          <div class="hud-stat leaf-stat" id="leafCard">
+            <span class="hud-icon" style="display:none;"></span>
+            <div class="hud-info">
+              <span class="hud-label">NEXT SP</span>
+              <span class="hud-value" id="leafValue">0 / 5</span>
+            </div>
+          </div>
+
+          <!-- SKILL PTS -->
+          <div class="hud-stat" id="skillCard">
+            <span class="hud-icon" style="display:none;"></span>
+            <div class="hud-info">
+              <span class="hud-label">SKILL PTS</span>
+              <span class="hud-value" id="skillValue">0</span>
+            </div>
           </div>
         </div>
 
-        <!-- NEXT SP -->
-        <div class="hud-stat leaf-stat" id="leafCard">
-          <span class="hud-icon" style="display:none;"></span>
-          <div class="hud-info">
-            <span class="hud-label">NEXT SP</span>
-            <span class="hud-value" id="leafValue">0 / 5</span>
-          </div>
-        </div>
-
-        <!-- SKILL PTS -->
-        <div class="hud-stat" id="skillCard">
-          <span class="hud-icon" style="display:none;"></span>
-          <div class="hud-info">
-            <span class="hud-label">SKILL PTS</span>
-            <span class="hud-value" id="skillValue">0</span>
-          </div>
+        <div class="hud-right">
+          <button id="skillBtn" class="neon-btn">SKILL TREE</button>
         </div>
       </div>
 
-      <div class="hud-right">
-        <button id="skillBtn" class="neon-btn">SKILL TREE</button>
+      <!-- BOTTOM ROW: combo bar under stats -->
+      <div class="hud-bottom">
+        <div id="comboBar">
+          <div id="comboText">COMBO x0</div>
+          <div id="comboFill"></div>
+        </div>
       </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
-      <div id="comboBar">
-        <div id="comboText">COMBO x0</div>
-        <div id="comboFill"></div>
-      </div>
-
       <div id="floatingText"></div>
-
       <div id="skillTooltip"></div>
 
       <div id="skillPanel" class="hidden">
