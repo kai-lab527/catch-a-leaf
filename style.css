@@ -7,7 +7,7 @@
   box-sizing: border-box;
 }
 
-body, html {
+html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -18,35 +18,29 @@ body, html {
   image-rendering: crisp-edges;
   background: #1a0e2e;
   touch-action: none;
+  overscroll-behavior: none;
 }
 
 #gameContainer {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
-  background: transparent;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  grid-template-columns: 1fr;
+  background: #1a0e2e;
 }
 
 #gameCanvas {
   display: block;
   width: 100%;
   height: 100%;
-  grid-row: 1 / -1;
-  grid-column: 1;
-  min-height: 0;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   touch-action: none;
+  background: #1a0e2e;
 }
 
 #ui-layer {
-  grid-row: 1 / -1;
-  grid-column: 1;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -55,30 +49,30 @@ body, html {
 #ui-layer > * { pointer-events: auto; }
 
 /* ==========================================
-   HUD – floating widgets (Maple theme)
+   HUD – fully responsive (uses vmin)
    ========================================== */
 #hud {
-  grid-row: 1;
-  grid-column: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
-  padding: 10px 16px;
+  padding: 1.2vmin 2vmin;
   background: transparent !important;
   border: none !important;
-  box-shadow: none !important;
   z-index: 10;
-  position: relative;
-  width: 100%;
   pointer-events: none;
+  width: 100%;
 }
 #hud > * { pointer-events: auto; }
 
 .hud-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 1.2vmin;
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -95,47 +89,47 @@ body, html {
 .hud-stat {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px 4px 8px;
+  gap: 0.6vmin;
+  padding: 0.6vmin 1.4vmin 0.6vmin 0.8vmin;
   background: rgba(30, 20, 15, 0.8);
-  border: 2px solid #6b3a1a;
-  border-radius: 3px;
-  box-shadow: 3px 3px 0 rgba(10, 5, 3, 0.5);
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
   image-rendering: pixelated;
   flex-shrink: 0;
-  min-height: 32px;
-  backdrop-filter: blur(2px);
+  min-height: 4.2vmin;
+  backdrop-filter: blur(0.2vmin);
 }
 
 .hud-icon {
-  font-size: 14px;
+  font-size: 2vmin;
   line-height: 1;
   flex-shrink: 0;
-  width: 18px;
+  width: 2.4vmin;
   text-align: center;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 0.1vmin 0.2vmin rgba(0,0,0,0.4));
   transition: all 0.08s linear;
 }
-.hud-icon.leaf-icon { font-size: 14px; }
-.hud-icon.sp-icon { font-size: 14px; }
+.hud-icon.leaf-icon { font-size: 2vmin; }
+.hud-icon.sp-icon { font-size: 2vmin; }
 
-/* Money glow on collection */
+/* Money glow */
 .hud-icon.money-glow {
   animation: moneyGlow 0.35s ease-out forwards;
 }
 @keyframes moneyGlow {
   0% {
     color: #f5c842;
-    text-shadow: 0 0 8px #f5c842, 0 0 20px #f5c842, 0 0 40px #f5a842;
+    text-shadow: 0 0 0.8vmin #f5c842, 0 0 2vmin #f5c842, 0 0 4vmin #f5a842;
     transform: scale(1);
   }
   50% {
     transform: scale(1.4);
-    text-shadow: 0 0 12px #f5c842, 0 0 30px #f5c842, 0 0 60px #f5a842;
+    text-shadow: 0 0 1.2vmin #f5c842, 0 0 3vmin #f5c842, 0 0 6vmin #f5a842;
   }
   100% {
     color: #f5c842;
-    text-shadow: 0 0 8px #f5c842, 0 0 20px #f5c842, 0 0 40px #f5a842;
+    text-shadow: 0 0 0.8vmin #f5c842, 0 0 2vmin #f5c842, 0 0 4vmin #f5a842;
     transform: scale(1);
   }
 }
@@ -144,27 +138,27 @@ body, html {
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  gap: 6px;
+  gap: 0.6vmin;
   min-width: 0;
 }
 
 .hud-label {
-  font-size: 6px;
+  font-size: 0.9vmin;
   color: #d4a06a;
-  letter-spacing: 1px;
+  letter-spacing: 0.1vmin;
   text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  text-shadow: 0 0.1vmin 0.3vmin rgba(0,0,0,0.8);
   white-space: nowrap;
   font-weight: bold;
   line-height: 1.2;
 }
 
 .hud-value {
-  font-size: 14px;
+  font-size: 1.8vmin;
   font-weight: bold;
   color: #f5e8d8;
-  text-shadow: 2px 2px 0 #0a0503;
-  letter-spacing: 0.5px;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
+  letter-spacing: 0.05vmin;
   line-height: 1.1;
   font-family: 'Press Start 2P', 'Courier New', monospace;
   white-space: nowrap;
@@ -179,51 +173,54 @@ body, html {
   display: none !important;
 }
 
+/* ==========================================
+   BUTTONS – responsive
+   ========================================== */
 .neon-btn {
   background: rgba(30, 20, 15, 0.8);
   color: #f5e8d8;
-  border: 2px solid #6b3a1a;
-  border-radius: 3px;
-  padding: 6px 16px;
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  padding: 0.8vmin 2vmin;
   font-family: 'Press Start 2P', 'Courier New', monospace;
-  font-size: 7px;
+  font-size: 0.9vmin;
   font-weight: bold;
-  letter-spacing: 1px;
+  letter-spacing: 0.1vmin;
   cursor: pointer;
-  text-shadow: 2px 2px 0 #0a0503;
-  box-shadow: 3px 3px 0 rgba(10, 5, 3, 0.5);
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
   transition: all 0.08s linear;
   white-space: nowrap;
   image-rendering: pixelated;
-  min-height: 32px;
+  min-height: 4.2vmin;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(0.2vmin);
 }
 .neon-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 3px 5px 0 rgba(10, 5, 3, 0.5);
+  transform: translateY(-0.2vmin);
+  box-shadow: 0.3vmin 0.5vmin 0 rgba(10, 5, 3, 0.5);
   background: rgba(50, 35, 25, 0.85);
 }
 .neon-btn:active {
-  transform: translateY(3px);
-  box-shadow: 1px 1px 0 rgba(10, 5, 3, 0.5);
+  transform: translateY(0.3vmin);
+  box-shadow: 0.1vmin 0.1vmin 0 rgba(10, 5, 3, 0.5);
 }
 .neon-btn.big {
-  padding: 16px 36px;
-  font-size: 14px;
-  min-height: 52px;
-  margin: 20px auto 0;
+  padding: 2vmin 4.5vmin;
+  font-size: 2vmin;
+  min-height: 6.5vmin;
+  margin: 2.5vmin auto 0;
   display: block;
   background: rgba(30, 20, 15, 0.9);
-  border: 3px solid #f5c842;
-  box-shadow: 4px 4px 0 rgba(10, 5, 3, 0.6);
-  text-shadow: 2px 2px 0 #0a0503, 0 0 20px rgba(245, 200, 66, 0.15);
+  border: 0.35vmin solid #f5c842;
+  box-shadow: 0.5vmin 0.5vmin 0 rgba(10, 5, 3, 0.6);
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503, 0 0 2vmin rgba(245, 200, 66, 0.15);
 }
 .neon-btn.big:hover {
-  transform: translateY(-3px);
-  box-shadow: 4px 7px 0 rgba(10, 5, 3, 0.6);
+  transform: translateY(-0.3vmin);
+  box-shadow: 0.5vmin 0.7vmin 0 rgba(10, 5, 3, 0.6);
   background: rgba(50, 35, 25, 0.9);
 }
 
@@ -234,19 +231,19 @@ body, html {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 80px;
-  width: min(340px, 50%);
-  height: 16px;
+  bottom: 10vh;
+  width: min(45vmin, 55%);
+  height: 2.2vmin;
   background: rgba(30, 20, 15, 0.8);
-  border: 2px solid #6b3a1a;
-  border-radius: 3px;
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.25s;
-  box-shadow: 3px 3px 0 rgba(10, 5, 3, 0.5);
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
   image-rendering: pixelated;
   z-index: 50;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(0.2vmin);
 }
 #comboBar.active { opacity: 1; }
 
@@ -271,9 +268,9 @@ body, html {
   align-items: center;
   justify-content: center;
   color: #f5e8d8;
-  font-size: 7px;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 0 #0a0503;
+  font-size: 1vmin;
+  letter-spacing: 0.1vmin;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
   z-index: 2;
   font-weight: bold;
 }
@@ -285,17 +282,17 @@ body, html {
   position: absolute;
   color: #f5a842;
   font-weight: bold;
-  font-size: 10px;
+  font-size: 1.4vmin;
   font-family: 'Press Start 2P', 'Courier New', monospace;
-  text-shadow: 2px 2px 0 #0a0503;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
   animation: floatUp 1.2s steps(12) forwards;
   pointer-events: none;
   white-space: nowrap;
 }
 @keyframes floatUp {
   0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
-  20% { transform: translate(-50%, -6px) scale(1.2); opacity: 1; }
-  100% { transform: translate(-50%, -50px) scale(1); opacity: 0; }
+  20% { transform: translate(-50%, -0.6vmin) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -5vmin) scale(1); opacity: 0; }
 }
 
 /* ==========================================
@@ -305,46 +302,44 @@ body, html {
   position: fixed;
   pointer-events: none;
   background: rgba(30, 20, 15, 0.92);
-  border: 2px solid #6b3a1a;
-  border-radius: 3px;
-  padding: 8px 12px;
-  max-width: 220px;
-  box-shadow: 4px 4px 0 rgba(10, 5, 3, 0.5);
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  padding: 1vmin 1.5vmin;
+  max-width: 28vmin;
+  box-shadow: 0.4vmin 0.4vmin 0 rgba(10, 5, 3, 0.5);
   z-index: 500;
   display: none;
   font-family: 'Press Start 2P', 'Courier New', monospace;
   image-rendering: pixelated;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(0.4vmin);
 }
-#skillTooltip.visible {
-  display: block;
-}
+#skillTooltip.visible { display: block; }
 #skillTooltip .tooltip-name {
   color: #f5c842;
-  font-size: 9px;
-  margin-bottom: 3px;
+  font-size: 1.2vmin;
+  margin-bottom: 0.3vmin;
   font-weight: bold;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  text-shadow: 0 0.1vmin 0.3vmin rgba(0,0,0,0.6);
 }
 #skillTooltip .tooltip-desc {
   color: #d4a06a;
-  font-size: 7px;
+  font-size: 0.9vmin;
   line-height: 1.5;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-shadow: 0 0.1vmin 0.2vmin rgba(0,0,0,0.5);
 }
 #skillTooltip .tooltip-cost {
   color: #e8701a;
-  font-size: 7px;
-  margin-top: 3px;
+  font-size: 0.9vmin;
+  margin-top: 0.3vmin;
 }
 #skillTooltip .tooltip-level {
   color: #8aba6a;
-  font-size: 6px;
-  margin-top: 2px;
+  font-size: 0.8vmin;
+  margin-top: 0.2vmin;
 }
 
 /* ==========================================
-   SKILL TREE PANEL
+   SKILL TREE PANEL – responsive
    ========================================== */
 #skillPanel {
   position: absolute;
@@ -360,13 +355,13 @@ body, html {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .panel-inner {
-  width: min(820px, 96%);
+  width: min(85vmin, 96%);
   max-height: 88%;
   background: #2a180e;
-  border: 4px solid #6b3a1a;
-  border-radius: 3px;
-  padding: 14px 18px;
-  box-shadow: 6px 6px 0 rgba(10, 5, 3, 0.6);
+  border: 0.5vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  padding: 1.8vmin 2.2vmin;
+  box-shadow: 0.8vmin 0.8vmin 0 rgba(10, 5, 3, 0.6);
   overflow-y: auto;
   animation: panelPop 0.2s steps(8);
   image-rendering: pixelated;
@@ -380,57 +375,57 @@ body, html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 0.6vmin;
 }
 .panel-header h2 {
   color: #f5c842;
-  font-size: 16px;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  font-size: 2vmin;
+  letter-spacing: 0.2vmin;
+  text-shadow: 0 0.2vmin 0.4vmin rgba(0,0,0,0.6);
 }
 .close-btn {
   background: #6b2a12;
   color: #f5d6a8;
-  border: 2px solid #6b3a1a;
-  border-radius: 3px;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
+  border: 0.25vmin solid #6b3a1a;
+  border-radius: 0.3vmin;
+  width: 4vmin;
+  height: 4vmin;
+  font-size: 2vmin;
   font-family: 'Press Start 2P', monospace;
   cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(10, 5, 3, 0.5);
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.5);
   transition: 0.05s linear;
   text-align: center;
   line-height: 1;
 }
 .close-btn:hover { transform: scale(1.05); }
-.close-btn:active { transform: translateY(3px); box-shadow: 2px 1px 0 rgba(10, 5, 3, 0.5); }
+.close-btn:active { transform: translateY(0.3vmin); box-shadow: 0.2vmin 0.1vmin 0 rgba(10, 5, 3, 0.5); }
 
 .skill-points {
   text-align: center;
   color: #d4a06a;
-  font-size: 9px;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  font-size: 1.1vmin;
+  margin-bottom: 1.2vmin;
+  letter-spacing: 0.1vmin;
+  text-shadow: 0 0.1vmin 0.2vmin rgba(0,0,0,0.4);
 }
-.skill-points span { color: #f5c842; font-size: 13px; font-weight: bold; }
-.skill-points-sep { color: #6b5a3a; margin: 0 8px; }
+.skill-points span { color: #f5c842; font-size: 1.6vmin; font-weight: bold; }
+.skill-points-sep { color: #6b5a3a; margin: 0 0.8vmin; }
 
 .tree-container {
   display: flex;
-  gap: 12px;
+  gap: 1.5vmin;
   align-items: stretch;
-  min-height: clamp(280px, 50vh, 420px);
+  min-height: 45vmin;
 }
 
 #skillGrid {
   flex: 1;
   position: relative;
-  min-height: clamp(280px, 50vh, 420px);
+  min-height: 45vmin;
   background: rgba(0, 0, 0, 0.25);
-  border: 2px solid #5a2a12;
-  box-shadow: inset 2px 2px 0 #3a1a0a;
+  border: 0.25vmin solid #5a2a12;
+  box-shadow: inset 0.2vmin 0.2vmin 0 #3a1a0a;
   overflow: visible;
 }
 
@@ -457,25 +452,25 @@ body, html {
 
 .skill-node {
   border-radius: 50%;
-  border: 2px solid #6b4a2a;
+  border: 0.25vmin solid #6b4a2a;
   background: #3d2817;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3px 3px 0 rgba(10, 5, 3, 0.4);
+  box-shadow: 0.3vmin 0.3vmin 0 rgba(10, 5, 3, 0.4);
   transition: all 0.08s linear;
   position: relative;
   cursor: pointer;
-  width: clamp(28px, 4.5vw, 60px);
-  height: clamp(28px, 4.5vw, 60px);
-  font-size: clamp(10px, 1.8vw, 24px);
+  width: 6.5vmin;
+  height: 6.5vmin;
+  font-size: 2.8vmin;
 }
 .skill-node .skill-icon {
   line-height: 1;
   position: relative;
   z-index: 2;
   font-size: inherit;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 0.1vmin 0.2vmin rgba(0,0,0,0.4));
 }
 
 .skill-node.locked {
@@ -490,17 +485,17 @@ body, html {
 }
 .lock-overlay {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  font-size: clamp(6px, 1vw, 10px);
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
+  top: -0.4vmin;
+  right: -0.4vmin;
+  font-size: 1.2vmin;
+  filter: drop-shadow(0 0 0.4vmin rgba(0,0,0,0.6));
   z-index: 3;
 }
 
 .skill-node.root-unaffordable {
   border-color: #8a2a1a;
   background: #4a1a0e;
-  box-shadow: 0 0 16px rgba(138,42,26,0.15);
+  box-shadow: 0 0 2vmin rgba(138,42,26,0.15);
   cursor: pointer;
 }
 .skill-node.root-affordable {
@@ -510,25 +505,19 @@ body, html {
   cursor: pointer;
 }
 @keyframes greenPulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(106,154,58,0.15); }
-  50% { box-shadow: 0 0 24px rgba(106,154,58,0.35); }
+  0%, 100% { box-shadow: 0 0 1.5vmin rgba(106,154,58,0.15); }
+  50% { box-shadow: 0 0 3vmin rgba(106,154,58,0.35); }
 }
-.skill-node.root-affordable .skill-icon {
-  filter: brightness(0.9);
-}
-.skill-node.root-unaffordable .skill-icon {
-  filter: grayscale(0.4);
-}
+.skill-node.root-affordable .skill-icon { filter: brightness(0.9); }
+.skill-node.root-unaffordable .skill-icon { filter: grayscale(0.4); }
 .skill-node.root-purchased {
   border-color: #f5c842;
   background: #f5c842;
-  box-shadow: 0 0 20px rgba(245,200,66,0.15);
+  box-shadow: 0 0 2.5vmin rgba(245,200,66,0.15);
   animation: masteredPulse 2.5s ease-in-out infinite;
   cursor: pointer;
 }
-.skill-node.root-purchased .skill-icon {
-  filter: brightness(0.2) sepia(1) saturate(2);
-}
+.skill-node.root-purchased .skill-icon { filter: brightness(0.2) sepia(1) saturate(2); }
 
 .skill-node.available {
   border-color: #6a9a3a;
@@ -537,44 +526,37 @@ body, html {
   cursor: pointer;
 }
 @keyframes greenGlow {
-  0%, 100% { box-shadow: 0 0 8px rgba(106,154,58,0.08); }
-  50% { box-shadow: 0 0 18px rgba(106,154,58,0.25); }
+  0%, 100% { box-shadow: 0 0 1vmin rgba(106,154,58,0.08); }
+  50% { box-shadow: 0 0 2.2vmin rgba(106,154,58,0.25); }
 }
-.skill-node.available:hover {
-  transform: scale(1.1);
-  transition: transform 0.06s linear;
-}
+.skill-node.available:hover { transform: scale(1.1); }
 
 .skill-node.purchased {
   border-color: var(--accent, #f5c842);
   background: var(--accent, #f5c842);
-  box-shadow: 0 0 12px var(--accent, rgba(245,200,66,0.12));
+  box-shadow: 0 0 1.5vmin var(--accent, rgba(245,200,66,0.12));
   cursor: pointer;
 }
-.skill-node.purchased .skill-icon {
-  filter: brightness(0.2) sepia(1) saturate(2);
-}
+.skill-node.purchased .skill-icon { filter: brightness(0.2) sepia(1) saturate(2); }
 
 .skill-node.mastered {
   border-color: #f5c842;
   background: #f5c842;
-  box-shadow: 0 0 24px rgba(245,200,66,0.15);
+  box-shadow: 0 0 3vmin rgba(245,200,66,0.15);
   animation: masteredPulse 2.5s ease-in-out infinite;
   cursor: pointer;
 }
 @keyframes masteredPulse {
-  0%, 100% { box-shadow: 0 0 24px rgba(245,200,66,0.12); }
-  50% { box-shadow: 0 0 40px rgba(245,200,66,0.25); }
+  0%, 100% { box-shadow: 0 0 3vmin rgba(245,200,66,0.12); }
+  50% { box-shadow: 0 0 5vmin rgba(245,200,66,0.25); }
 }
-.skill-node.mastered .skill-icon {
-  filter: brightness(0.15) sepia(1) saturate(2);
-}
+.skill-node.mastered .skill-icon { filter: brightness(0.15) sepia(1) saturate(2); }
 .mastered-star {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: clamp(8px, 1.2vw, 14px);
-  filter: drop-shadow(0 0 8px #f5c842);
+  top: -1vmin;
+  right: -1vmin;
+  font-size: 1.6vmin;
+  filter: drop-shadow(0 0 0.8vmin #f5c842);
   animation: starSpin 4s linear infinite;
   z-index: 3;
 }
@@ -586,23 +568,23 @@ body, html {
 
 .skill-pips {
   position: absolute;
-  bottom: -14px;
+  bottom: -1.8vmin;
   display: flex;
-  gap: 2px;
+  gap: 0.25vmin;
   justify-content: center;
   width: 100%;
 }
 .skill-pip {
-  width: clamp(3px, 0.5vw, 5px);
-  height: clamp(3px, 0.5vw, 5px);
-  border: 1px solid #6b4a2a;
+  width: 0.6vmin;
+  height: 0.6vmin;
+  border: 0.1vmin solid #6b4a2a;
   background: #2a180e;
-  border-radius: 1px;
+  border-radius: 0.1vmin;
 }
 .skill-pip.filled {
   background: var(--accent, #f5c842);
   border-color: var(--accent, #f5c842);
-  box-shadow: 0 0 4px var(--accent, #f5c842);
+  box-shadow: 0 0 0.4vmin var(--accent, #f5c842);
 }
 
 .deny-shake {
@@ -610,12 +592,12 @@ body, html {
 }
 @keyframes denyShake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
+  25% { transform: translateX(-0.3vmin); }
+  75% { transform: translateX(0.3vmin); }
 }
 
 /* ==========================================
-   START SCREEN – clean, no border/background on title
+   START SCREEN – responsive
    ========================================== */
 #startScreen {
   position: absolute;
@@ -638,14 +620,13 @@ body, html {
   overflow: hidden;
 }
 
-/* Falling leaves – image sprites */
 .falling-leaf {
   position: absolute;
-  top: -60px;
+  top: -8vmin;
   pointer-events: none;
   animation: leafFall linear infinite;
   image-rendering: pixelated;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 0.2vmin 0.4vmin rgba(0,0,0,0.4));
   will-change: transform, opacity;
 }
 
@@ -654,16 +635,13 @@ body, html {
     transform: translateY(0) rotate(0deg) scale(1);
     opacity: 0.5;
   }
-  50% {
-    opacity: 0.9;
-  }
+  50% { opacity: 0.9; }
   100% {
-    transform: translateY(calc(100vh + 100px)) rotate(720deg) scale(0.8);
+    transform: translateY(calc(100vh + 12vmin)) rotate(720deg) scale(0.8);
     opacity: 0.1;
   }
 }
 
-/* Clean title – no border, no background, no padding */
 .title-glow {
   text-align: center;
   position: relative;
@@ -672,130 +650,232 @@ body, html {
 
 .title-glow h1 {
   color: #f5c842;
-  font-size: clamp(28px, 7vw, 52px);
-  letter-spacing: 3px;
+  font-size: clamp(3.5vmin, 8vmin, 7vmin);
+  letter-spacing: 0.3vmin;
   line-height: 1.2;
   text-shadow:
-    0 0 20px #e8701a,
-    0 0 40px #f5a842,
-    0 0 60px rgba(245, 200, 66, 0.15),
-    0 4px 0 #1a0e08,
-    0 8px 20px rgba(0,0,0,0.9);
+    0 0 2.5vmin #e8701a,
+    0 0 5vmin #f5a842,
+    0 0 7vmin rgba(245, 200, 66, 0.15),
+    0 0.4vmin 0 #1a0e08,
+    0 0.8vmin 2vmin rgba(0,0,0,0.9);
   animation: titleFloat 3s ease-in-out infinite;
 }
 @keyframes titleFloat {
   0%, 100% { transform: translateY(0) rotate(-0.5deg); }
-  50% { transform: translateY(-8px) rotate(0.5deg); }
+  50% { transform: translateY(-1vmin) rotate(0.5deg); }
 }
 
 .subtitle {
   color: #d4a06a;
-  font-size: clamp(10px, 1.5vw, 14px);
-  margin-top: 14px;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 0 #1a0e08, 0 0 20px rgba(0,0,0,0.5);
-}
-
-#startBtn {
-  margin-top: 24px;
+  font-size: clamp(1.2vmin, 1.8vmin, 1.8vmin);
+  margin-top: 1.6vmin;
+  letter-spacing: 0.1vmin;
+  text-shadow: 0 0.2vmin 0 #1a0e08, 0 0 2.5vmin rgba(0,0,0,0.5);
 }
 
 .hidden { display: none !important; }
 
 .panel-inner::-webkit-scrollbar {
-  width: 6px;
+  width: 0.8vmin;
   background: #2a180e;
 }
 .panel-inner::-webkit-scrollbar-thumb {
   background: #6b3a1a;
-  border: 2px solid #5a2a12;
+  border: 0.2vmin solid #5a2a12;
 }
 
 /* ==========================================
-   RESPONSIVE
+   RESPONSIVE – small screens (< 600px)
    ========================================== */
 @media (max-width: 600px) {
-  #hud {
-    padding: 6px 10px;
-  }
-  .hud-left {
-    gap: 6px;
-  }
   .hud-stat {
-    padding: 3px 8px 3px 6px;
-    gap: 4px;
-    min-height: 26px;
+    padding: 0.4vmin 1.2vmin 0.4vmin 0.6vmin;
+    min-height: 3.8vmin;
+    border-width: 0.2vmin;
   }
   .hud-icon {
-    font-size: 12px;
-    width: 16px;
+    font-size: 1.6vmin;
+    width: 2vmin;
   }
   .hud-label {
-    font-size: 5px;
+    font-size: 0.8vmin;
   }
   .hud-value {
-    font-size: 12px;
+    font-size: 1.5vmin;
   }
   .neon-btn {
-    font-size: 5px;
-    padding: 4px 10px;
-    min-height: 26px;
+    font-size: 0.8vmin;
+    padding: 0.6vmin 1.6vmin;
+    min-height: 3.8vmin;
+    border-width: 0.2vmin;
   }
   .neon-btn.big {
-    padding: 12px 24px;
-    font-size: 12px;
-    min-height: 42px;
+    padding: 1.6vmin 3.5vmin;
+    font-size: 1.8vmin;
+    min-height: 5.5vmin;
+    border-width: 0.3vmin;
   }
   #comboBar {
-    height: 14px;
-    width: min(260px, 50%);
-    bottom: 60px;
+    height: 1.8vmin;
+    bottom: 8vh;
   }
   #comboText {
-    font-size: 5px;
+    font-size: 0.8vmin;
   }
   .title-glow h1 {
-    font-size: clamp(22px, 6vw, 36px);
+    font-size: clamp(3vmin, 6.5vmin, 5vmin);
+  }
+  .subtitle {
+    font-size: clamp(1vmin, 1.4vmin, 1.4vmin);
+  }
+  .panel-inner {
+    padding: 1.2vmin 1.6vmin;
+  }
+  .panel-header h2 {
+    font-size: 1.6vmin;
+  }
+  .close-btn {
+    width: 3.2vmin;
+    height: 3.2vmin;
+    font-size: 1.6vmin;
+  }
+  .skill-points {
+    font-size: 0.9vmin;
+  }
+  .skill-points span {
+    font-size: 1.3vmin;
+  }
+  #skillGrid {
+    min-height: 35vmin;
+  }
+  .skill-node {
+    width: 5.5vmin;
+    height: 5.5vmin;
+    font-size: 2.2vmin;
+    border-width: 0.2vmin;
+  }
+  .skill-pips {
+    bottom: -1.4vmin;
+  }
+  .skill-pip {
+    width: 0.5vmin;
+    height: 0.5vmin;
+  }
+  .mastered-star {
+    font-size: 1.2vmin;
+    top: -0.8vmin;
+    right: -0.8vmin;
+  }
+  .lock-overlay {
+    font-size: 1vmin;
+    top: -0.3vmin;
+    right: -0.3vmin;
   }
   .falling-leaf {
-    width: 25px !important;
-    height: 25px !important;
+    width: 3vmin !important;
+    height: 3vmin !important;
+  }
+  .float-text {
+    font-size: 1.2vmin;
   }
 }
 
+/* ==========================================
+   RESPONSIVE – very small phones (< 400px)
+   ========================================== */
 @media (max-width: 400px) {
-  .hud-icon {
-    font-size: 10px;
-    width: 14px;
+  .hud-stat {
+    padding: 0.3vmin 0.8vmin 0.3vmin 0.4vmin;
+    min-height: 3.2vmin;
+    gap: 0.4vmin;
   }
-  .hud-value {
-    font-size: 10px;
+  .hud-left {
+    gap: 0.8vmin;
+  }
+  .hud-icon {
+    font-size: 1.3vmin;
+    width: 1.6vmin;
   }
   .hud-label {
-    font-size: 4px;
+    font-size: 0.6vmin;
   }
-  .hud-stat {
-    padding: 2px 6px 2px 4px;
-    min-height: 22px;
+  .hud-value {
+    font-size: 1.2vmin;
   }
   .neon-btn {
-    font-size: 4px;
-    padding: 3px 8px;
-    min-height: 22px;
+    font-size: 0.6vmin;
+    padding: 0.4vmin 1.2vmin;
+    min-height: 3.2vmin;
   }
   .neon-btn.big {
-    padding: 10px 18px;
-    font-size: 10px;
-    min-height: 36px;
+    padding: 1.2vmin 2.5vmin;
+    font-size: 1.4vmin;
+    min-height: 4.5vmin;
   }
   #comboBar {
-    height: 12px;
+    height: 1.4vmin;
+    bottom: 6vh;
   }
   #comboText {
-    font-size: 4px;
+    font-size: 0.6vmin;
+  }
+  .title-glow h1 {
+    font-size: clamp(2.5vmin, 5vmin, 4vmin);
+  }
+  .subtitle {
+    font-size: clamp(0.8vmin, 1.1vmin, 1.1vmin);
+    margin-top: 1vmin;
+  }
+  .panel-inner {
+    padding: 0.8vmin 1.2vmin;
+  }
+  .panel-header h2 {
+    font-size: 1.3vmin;
+  }
+  .close-btn {
+    width: 2.8vmin;
+    height: 2.8vmin;
+    font-size: 1.3vmin;
+  }
+  .skill-points {
+    font-size: 0.7vmin;
+  }
+  .skill-points span {
+    font-size: 1.1vmin;
+  }
+  #skillGrid {
+    min-height: 30vmin;
+  }
+  .skill-node {
+    width: 4.8vmin;
+    height: 4.8vmin;
+    font-size: 1.8vmin;
+    border-width: 0.15vmin;
+  }
+  .skill-pips {
+    bottom: -1.2vmin;
+    gap: 0.15vmin;
+  }
+  .skill-pip {
+    width: 0.4vmin;
+    height: 0.4vmin;
+  }
+  .mastered-star {
+    font-size: 1vmin;
+    top: -0.6vmin;
+    right: -0.6vmin;
+  }
+  .lock-overlay {
+    font-size: 0.8vmin;
+    top: -0.2vmin;
+    right: -0.2vmin;
   }
   .falling-leaf {
-    width: 18px !important;
-    height: 18px !important;
+    width: 2.5vmin !important;
+    height: 2.5vmin !important;
+  }
+  .float-text {
+    font-size: 1vmin;
   }
 }

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Catch-a-leaf-demo</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,7 +15,7 @@
         <div class="hud-stat" id="moneyCard">
           <span class="hud-icon" id="moneyIcon">¢</span>
           <div class="hud-info">
-            <span class="hud-label">MONEY :</span>
+            <span class="hud-label">MONEY</span>
             <span class="hud-value" id="moneyValue">0</span>
           </div>
         </div>
@@ -24,7 +24,7 @@
         <div class="hud-stat leaf-stat" id="leafCard">
           <span class="hud-icon" style="display:none;"></span>
           <div class="hud-info">
-            <span class="hud-label">NEXT SP :</span>
+            <span class="hud-label">NEXT SP</span>
             <span class="hud-value" id="leafValue">0 / 5</span>
           </div>
         </div>
@@ -33,7 +33,7 @@
         <div class="hud-stat" id="skillCard">
           <span class="hud-icon" style="display:none;"></span>
           <div class="hud-info">
-            <span class="hud-label">SKILL PTS :</span>
+            <span class="hud-label">SKILL PTS</span>
             <span class="hud-value" id="skillValue">0</span>
           </div>
         </div>
@@ -71,11 +71,11 @@
         </div>
       </div>
 
-      <!-- START SCREEN – clean, no border/background -->
+      <!-- START SCREEN -->
       <div id="startScreen">
         <div id="fallingLeaves"></div>
         <div class="title-glow">
-          <h1>CATCH-A-LEAF DEMO</h1>
+          <h1>CATCH-A-LEAF<br>DEMO</h1>
           <p class="subtitle">Still in development, more features coming soon!</p>
           <button id="startBtn" class="neon-btn big">START</button>
         </div>
@@ -100,7 +100,7 @@
     });
   </script>
 
-  <!-- FALLING LEAVES – using sprite images -->
+  <!-- FALLING LEAVES -->
   <script>
     (function createFallingLeaves() {
       const container = document.getElementById('fallingLeaves');
@@ -127,4 +127,4 @@
     })();
   </script>
 </body>
-</html>   
+</html>

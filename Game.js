@@ -37,12 +37,14 @@ class Game {
 
     this.tooltip = document.getElementById('skillTooltip');
 
+    // Scale – this will be set properly in setupResize
     this.scale = 1;
     this.viewW = 800;
     this.viewH = 600;
 
     this.isSkillPanelOpen = false;
 
+    // IMPORTANT: setupResize must be called BEFORE setup
     this.setupResize();
     this.setup();
     this.setupInput();
@@ -105,22 +107,27 @@ class Game {
         return;
       }
 
+      // Reference size – we use 800x600 as the base
       const refHeight = 600;
       const refWidth = 800;
       const scaleH = r.height / refHeight;
       const scaleW = r.width / refWidth;
+      // Use the smaller scale so everything fits
       let newScale = Math.min(scaleH, scaleW);
-      newScale = Math.max(0.7, Math.min(1.6, newScale));
+      // Clamp to avoid extreme sizes
+      newScale = Math.max(0.5, Math.min(1.8, newScale));
 
       this.scale = newScale;
       this.viewW = r.width;
       this.viewH = r.height;
 
+      // Update canvas size
       this.canvas.width = Math.floor(r.width * dpr);
       this.canvas.height = Math.floor(r.height * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this.ctx.imageSmoothingEnabled = false;
 
+      // Update player if it exists
       if (this.player) {
         const size = 64 * this.scale;
         this.player.width = size;
@@ -129,15 +136,15 @@ class Game {
         this.player.x = Math.min(this.player.x, r.width - size);
       }
 
+      // Update combo bar position
       const comboBar = document.getElementById('comboBar');
       if (comboBar) {
-        const hudHeight = document.getElementById('hud')?.getBoundingClientRect().height || 48;
-        const topOffset = Math.max(58, hudHeight + 14);
-        comboBar.style.top = (topOffset * this.scale) + 'px';
+        comboBar.style.bottom = (8 * this.scale) + 'vh';
       }
     };
     window.addEventListener('resize', fit);
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fit).observe(this.canvas);
+    // Call fit immediately to set initial scale
     fit();
     this.fit = fit;
   }
@@ -157,6 +164,7 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
+    // Touch drag only – no leaf tapping
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.audio.forceResume();
@@ -164,7 +172,6 @@ class Game {
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
       const mx = touch.clientX - rect.left;
-      const my = touch.clientY - rect.top;
       this.touchX = mx;
       this.touchActive = true;
     }, { passive: false });
@@ -519,7 +526,7 @@ class Game {
       const isRoot = node.id === 'root';
       const size = sizeMap[node.size] || 40;
       const classes = `skill-node ${node.state}`;
-      const style = `--accent:${node.color}; width:${size}px; height:${size}px; font-size:${size * 0.4}px;`;
+      const style = `--accent:${node.color};`;
 
       let pipsHtml = '';
       if (!isRoot && node.max > 1) {
@@ -641,7 +648,7 @@ class Game {
     }
     
     const baseSize = 0.7 + Math.random() * 0.3;
-    const minSize = 28;
+    const minSize = 28 * scale;
     const size = Math.max(minSize, baseSize * scale * 32);
     const opts = { 
       size: size,
@@ -671,7 +678,6 @@ class Game {
     }
   }
 
-  // --- COLLECT LEAF (adds money glow) ---
   collectLeaf(leaf, mx, my, clicked = false) {
     if (leaf.collected) return;
     
@@ -692,14 +698,12 @@ class Game {
       this.audio.playCombo(this.combo);
     }
 
-    // --- MONEY GLOW EFFECT ---
+    // Money glow effect
     const moneyIcon = document.getElementById('moneyIcon');
     if (moneyIcon) {
       moneyIcon.classList.remove('money-glow');
-      // Force reflow to restart animation
       void moneyIcon.offsetWidth;
       moneyIcon.classList.add('money-glow');
-      // Remove class after animation ends (350ms)
       setTimeout(() => {
         moneyIcon.classList.remove('money-glow');
       }, 350);
