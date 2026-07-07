@@ -17,21 +17,60 @@ class Player extends GameObject {
 
   loadSprite() {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.src = 'Sprites/player_trashbin.png';
     img.onload = () => {
-      this.sprite = img;
+      const processedCanvas = this.processImage(img);
+      this.sprite = processedCanvas;
       this.spriteLoaded = true;
-      console.log('✅ Player trash bin sprite loaded');
+      console.log('✅ Player sprite loaded, white pixels removed');
     };
     img.onerror = () => {
       this.sprite = Player.generatePixelSprite();
       this.spriteLoaded = true;
-      console.warn('Using fallback player sprite (failed to load player_trashbin.png)');
+      console.warn('Using fallback player sprite');
     };
     if (img.complete && img.naturalWidth > 0) {
-      this.sprite = img;
+      const processedCanvas = this.processImage(img);
+      this.sprite = processedCanvas;
       this.spriteLoaded = true;
     }
+  }
+
+  processImage(img) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 64;
+    canvas.width = size;
+    canvas.height = size;
+    ctx.drawImage(img, 0, 0, size, size);
+
+    const imageData = ctx.getImageData(0, 0, size, size);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      // Remove any pixel that is near‑white (threshold 180)
+      if (r > 180 && g > 180 && b > 180 && a > 0) {
+        data[i + 3] = 0;
+      }
+      // Also remove pixels that are very light grey
+      if (r > 200 && g > 200 && b > 200 && a > 0) {
+        data[i + 3] = 0;
+      }
+      // Catch any pixel that's predominantly white with low saturation
+      const avg = (r + g + b) / 3;
+      if (avg > 200 && a > 0) {
+        data[i + 3] = 0;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return canvas;
   }
 
   static _playerSprite = null;
@@ -97,13 +136,17 @@ class Player extends GameObject {
     const cx = this.x + this.width / 2;
     const cy = this.y + this.height / 2;
 
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
-
     ctx.translate(cx, cy);
     const bobY = Math.sin(this.bobPhase) * 2;
     ctx.translate(0, bobY);
     ctx.rotate(this.tilt);
+
+    const size = this.width;
+    const half = size / 2;
+
+    // Draw the processed sprite – white pixels are now transparent
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
     if (this.catchFlashTimer > 0) {
       ctx.shadowBlur = 30;
@@ -112,8 +155,7 @@ class Player extends GameObject {
     }
 
     ctx.imageSmoothingEnabled = false;
-    const size = this.width;
-    ctx.drawImage(this.sprite, -size / 2, -size / 2, size, size);
+    ctx.drawImage(this.sprite, -half, -half, size, size);
 
     if (this.catchFlashTimer > 0) {
       ctx.globalAlpha = this.catchFlashTimer / 0.3;

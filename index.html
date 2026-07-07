@@ -8,34 +8,44 @@
 </head>
 <body>
   <div id="gameContainer">
+    <!-- HUD – floating widgets -->
     <div id="hud">
-      <div class="hud-card" id="moneyCard">
-        <div class="hud-icon pixel-icon">¢</div>
-        <div class="hud-info">
-          <div class="hud-label">MONEY</div>
-          <div class="hud-value" id="moneyValue">0</div>
+      <div class="hud-left">
+        <!-- MONEY -->
+        <div class="hud-stat" id="moneyCard">
+          <span class="hud-icon" id="moneyIcon">¢</span>
+          <div class="hud-info">
+            <span class="hud-label">MONEY :</span>
+            <span class="hud-value" id="moneyValue">0</span>
+          </div>
+        </div>
+
+        <!-- NEXT SP -->
+        <div class="hud-stat leaf-stat" id="leafCard">
+          <span class="hud-icon" style="display:none;"></span>
+          <div class="hud-info">
+            <span class="hud-label">NEXT SP :</span>
+            <span class="hud-value" id="leafValue">0 / 5</span>
+          </div>
+        </div>
+
+        <!-- SKILL PTS -->
+        <div class="hud-stat" id="skillCard">
+          <span class="hud-icon" style="display:none;"></span>
+          <div class="hud-info">
+            <span class="hud-label">SKILL PTS :</span>
+            <span class="hud-value" id="skillValue">0</span>
+          </div>
         </div>
       </div>
-      <div class="hud-card" id="leafCard">
-        <div class="hud-icon pixel-icon leaf-icon"></div>
-        <div class="hud-info">
-          <div class="hud-label">NEXT SP</div>
-          <div class="hud-value" id="leafValue">0 / 5</div>
-        </div>
-        <div class="leaf-progress-track">
-          <div class="leaf-progress-fill" id="leafProgressFill" style="width:0%"></div>
-        </div>
+
+      <div class="hud-right">
+        <button id="skillBtn" class="neon-btn">SKILL TREE</button>
       </div>
-      <div class="hud-card" id="skillCard">
-        <div class="hud-icon pixel-icon sp-icon">★</div>
-        <div class="hud-info">
-          <div class="hud-label">SKILL PTS</div>
-          <div class="hud-value" id="skillValue">0</div>
-        </div>
-      </div>
-      <button id="skillBtn" class="neon-btn">SKILL TREE</button>
     </div>
+
     <canvas id="gameCanvas"></canvas>
+
     <div id="ui-layer">
       <div id="comboBar">
         <div id="comboText">COMBO x0</div>
@@ -44,7 +54,6 @@
 
       <div id="floatingText"></div>
 
-      <!-- Tooltip for skill hover -->
       <div id="skillTooltip"></div>
 
       <div id="skillPanel" class="hidden">
@@ -62,16 +71,18 @@
         </div>
       </div>
 
+      <!-- START SCREEN – clean, no border/background -->
       <div id="startScreen">
+        <div id="fallingLeaves"></div>
         <div class="title-glow">
-          <h1>CATCH-A-LEAF<br>DEMO</h1>
+          <h1>CATCH-A-LEAF DEMO</h1>
           <p class="subtitle">Still in development, more features coming soon!</p>
           <button id="startBtn" class="neon-btn big">START</button>
-          <p class="hint">Move: <span class="key">A/D</span> or <span class="key">←/→</span> · Catch / Click leaves to earn</p>
         </div>
       </div>
     </div>
   </div>
+
   <script src="GameObject.js"></script>
   <script src="Particle.js"></script>
   <script src="Leaf.js"></script>
@@ -79,6 +90,7 @@
   <script src="SkillTree.js"></script>
   <script src="AudioManager.js"></script>
   <script src="Game.js"></script>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const canvas = document.getElementById('gameCanvas');
@@ -87,5 +99,32 @@
       }
     });
   </script>
+
+  <!-- FALLING LEAVES – using sprite images -->
+  <script>
+    (function createFallingLeaves() {
+      const container = document.getElementById('fallingLeaves');
+      if (!container) return;
+
+      const leafCount = 20;
+      const leafSprite = 'Sprites/normal_maple_leaf.png';
+
+      for (let i = 0; i < leafCount; i++) {
+        const img = document.createElement('img');
+        img.src = leafSprite;
+        img.className = 'falling-leaf';
+        img.alt = 'leaf';
+        img.style.left = Math.random() * 100 + '%';
+        const size = 20 + Math.random() * 30;
+        img.style.width = size + 'px';
+        img.style.height = size + 'px';
+        img.style.animationDuration = (6 + Math.random() * 10) + 's';
+        img.style.animationDelay = (Math.random() * 12) + 's';
+        img.style.opacity = 0.3 + Math.random() * 0.5;
+        img.style.transform = `rotate(${Math.random() * 360}deg)`;
+        container.appendChild(img);
+      }
+    })();
+  </script>
 </body>
-</html>
+</html>   

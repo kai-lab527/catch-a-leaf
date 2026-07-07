@@ -23,14 +23,11 @@ class Game {
 
     this.keys = {};
 
-    // Touch controls
     this.touchX = null;
     this.touchActive = false;
 
-    // Audio
     this.audio = new AudioManager();
 
-    // Background frames
     this.bgFrames = [];
     this.bgLoaded = false;
     this.bgLoadCount = 0;
@@ -38,10 +35,8 @@ class Game {
     this.frameTimer = 0;
     this.frameDelay = 1.0;
 
-    // Tooltip
     this.tooltip = document.getElementById('skillTooltip');
 
-    // Scale
     this.scale = 1;
     this.viewW = 800;
     this.viewH = 600;
@@ -110,14 +105,11 @@ class Game {
         return;
       }
 
-      // Reference size – we use 800x600 as base
       const refHeight = 600;
       const refWidth = 800;
       const scaleH = r.height / refHeight;
       const scaleW = r.width / refWidth;
-      // Use the smaller scale to fit everything inside the viewport
       let newScale = Math.min(scaleH, scaleW);
-      // Clamp: minimum 0.7 (good for mobile), maximum 1.6 (good for big screens)
       newScale = Math.max(0.7, Math.min(1.6, newScale));
 
       this.scale = newScale;
@@ -137,7 +129,6 @@ class Game {
         this.player.x = Math.min(this.player.x, r.width - size);
       }
 
-      // Update combo bar position dynamically
       const comboBar = document.getElementById('comboBar');
       if (comboBar) {
         const hudHeight = document.getElementById('hud')?.getBoundingClientRect().height || 48;
@@ -157,7 +148,6 @@ class Game {
   }
 
   setupInput() {
-    // Keyboard
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'Escape') this.toggleSkillPanel(false);
@@ -167,7 +157,6 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
-    // Touch drag (no leaf tap)
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.audio.forceResume();
@@ -200,8 +189,6 @@ class Game {
       this.touchActive = false;
       this.touchX = null;
     }, { passive: false });
-
-    // No mouse click for leaves
   }
 
   setupUI() {
@@ -234,7 +221,6 @@ class Game {
     }
   }
 
-  // ---- Tree layout ----
   getTreeLayout() {
     return {
       root: { x: 50, y: 16, size: 'large' },
@@ -329,7 +315,6 @@ class Game {
     tooltip.classList.add('visible');
   }
 
-  // ---- FULL SKILL TREE RENDER ----
   renderSkillTree() {
     const grid = document.getElementById('skillGrid');
     const availPoints = this.skillTree.available;
@@ -492,7 +477,6 @@ class Game {
       }
     });
 
-    // ---- SVG lines ----
     let svgLines = `<svg class="tree-lines" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0;left:0;pointer-events:none;z-index:1;">`;
 
     connections.forEach(conn => {
@@ -528,7 +512,6 @@ class Game {
 
     svgLines += `</svg>`;
 
-    // ---- HTML nodes ----
     let nodesHtml = '';
     const sizeMap = { large: 60, medium: 48, small: 36 };
 
@@ -572,7 +555,6 @@ class Game {
 
     grid.innerHTML = svgLines + nodesHtml;
 
-    // ---- Bind events ----
     grid.querySelectorAll('.skill-node').forEach(nodeEl => {
       const id = nodeEl.dataset.id;
 
@@ -644,7 +626,6 @@ class Game {
     });
   }
 
-  // ---- SPAWN LEAVES ----
   spawnLeaf() {
     const { w } = this.getViewSize();
     const scale = this.scale || 1;
@@ -660,8 +641,7 @@ class Game {
     }
     
     const baseSize = 0.7 + Math.random() * 0.3;
-    // Minimum leaf size: 28px on mobile, scales up on larger screens
-    const minSize = 28 * (scale < 0.9 ? 1 : 1);
+    const minSize = 28;
     const size = Math.max(minSize, baseSize * scale * 32);
     const opts = { 
       size: size,
@@ -691,6 +671,7 @@ class Game {
     }
   }
 
+  // --- COLLECT LEAF (adds money glow) ---
   collectLeaf(leaf, mx, my, clicked = false) {
     if (leaf.collected) return;
     
@@ -709,6 +690,19 @@ class Game {
     this.audio.playCollect();
     if (this.combo > 1) {
       this.audio.playCombo(this.combo);
+    }
+
+    // --- MONEY GLOW EFFECT ---
+    const moneyIcon = document.getElementById('moneyIcon');
+    if (moneyIcon) {
+      moneyIcon.classList.remove('money-glow');
+      // Force reflow to restart animation
+      void moneyIcon.offsetWidth;
+      moneyIcon.classList.add('money-glow');
+      // Remove class after animation ends (350ms)
+      setTimeout(() => {
+        moneyIcon.classList.remove('money-glow');
+      }, 350);
     }
 
     const moneyCard = document.getElementById('moneyCard');
@@ -1002,16 +996,13 @@ class Game {
     const ctx = this.ctx;
     const scale = this.scale || 1;
 
-    // Draw background frame if loaded, otherwise solid dark color
     if (this.bgLoaded && this.bgFrames[this.currentFrame]) {
       ctx.drawImage(this.bgFrames[this.currentFrame], 0, 0, w, h);
     } else {
-      // Solid dark fallback – no gradient flash
       ctx.fillStyle = '#1a0e2e';
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Ground shadow overlay
     ctx.fillStyle = 'rgba(15, 8, 20, 0.6)';
     ctx.beginPath();
     ctx.moveTo(0, h - 50 * scale);
