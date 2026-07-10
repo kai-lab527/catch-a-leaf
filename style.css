@@ -19,10 +19,15 @@ html, body {
   background: #1a0e2e;
   touch-action: none;
   overscroll-behavior: none;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 #gameContainer {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -38,6 +43,10 @@ html, body {
   image-rendering: crisp-edges;
   touch-action: none;
   background: #1a0e2e;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
 }
 
 #ui-layer {
@@ -45,11 +54,12 @@ html, body {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  z-index: 1;
 }
 #ui-layer > * { pointer-events: auto; }
 
 /* ==========================================
-   HUD – two rows: stats top, combo bottom
+   HUD – floating, no full-width bar
    ========================================== */
 #hud {
   position: absolute;
@@ -69,7 +79,6 @@ html, body {
 }
 #hud > * { pointer-events: auto; }
 
-/* TOP ROW: stats + button */
 .hud-top {
   display: flex;
   align-items: center;
@@ -92,14 +101,13 @@ html, body {
 }
 .hud-right > * { pointer-events: auto; }
 
-/* BOTTOM ROW: combo bar */
 .hud-bottom {
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-/* ===== STAT WIDGETS (same as before) ===== */
+/* ===== STAT WIDGETS ===== */
 .hud-stat {
   display: flex;
   align-items: center;
@@ -176,9 +184,20 @@ html, body {
   white-space: nowrap;
 }
 
+.hud-xp-text {
+  font-size: 1.1vmin;
+  color: #d4a06a;
+  text-shadow: 0.1vmin 0.1vmin 0 #0a0503;
+  letter-spacing: 0.05vmin;
+  line-height: 1.1;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  white-space: nowrap;
+}
+
 #moneyValue { color: #f5c842; }
 #leafValue { color: #e8a84a; }
 #skillValue { color: #c8a8d8; }
+#levelValue { color: #f5c842; }
 
 .hud-stat.leaf-stat .leaf-progress-track,
 .hud-stat.leaf-stat .leaf-progress-fill {
@@ -186,7 +205,74 @@ html, body {
 }
 
 /* ==========================================
-   COMBO BAR – now in HUD bottom row
+   LEVEL WIDGET
+   ========================================== */
+.hud-stat.level-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2vmin;
+  padding: 0.4vmin 1.2vmin 0.3vmin 0.8vmin;
+  min-height: 3.8vmin;
+}
+
+.hud-stat.level-stat .hud-info {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.4vmin;
+}
+
+.hud-stat.level-stat .hud-info .hud-label {
+  font-size: 0.8vmin;
+  color: #d4a06a;
+  letter-spacing: 0.1vmin;
+  text-transform: uppercase;
+  text-shadow: 0 0.1vmin 0.3vmin rgba(0,0,0,0.8);
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.hud-stat.level-stat .hud-info .hud-value {
+  font-size: 2.6vmin;
+  font-weight: bold;
+  color: #f5c842;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503, 0 0 1.5vmin rgba(245, 200, 66, 0.1);
+  letter-spacing: 0.05vmin;
+  line-height: 1.1;
+}
+
+.hud-stat.level-stat .hud-info .hud-xp-text {
+  font-size: 1.1vmin;
+  color: #d4a06a;
+  text-shadow: 0.1vmin 0.1vmin 0 #0a0503;
+  letter-spacing: 0.05vmin;
+  line-height: 1.1;
+  margin-left: 0.3vmin;
+}
+
+.level-xp-track {
+  width: 100%;
+  height: 0.5vmin;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.1vmin solid #4a2a1a;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0.1vmin 0.2vmin rgba(0,0,0,0.4);
+  image-rendering: pixelated;
+}
+
+.level-xp-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f5a842, #f5c842);
+  border-radius: 0;
+  transition: width 0.15s steps(8);
+  box-shadow: 0 0 1.2vmin rgba(245, 200, 66, 0.2);
+  image-rendering: pixelated;
+}
+
+/* ==========================================
+   COMBO BAR
    ========================================== */
 #comboBar {
   width: min(45vmin, 60%);
@@ -296,6 +382,7 @@ html, body {
   animation: floatUp 1.2s steps(12) forwards;
   pointer-events: none;
   white-space: nowrap;
+  z-index: 100;
 }
 @keyframes floatUp {
   0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
@@ -694,8 +781,60 @@ html, body {
 }
 
 /* ==========================================
-   RESPONSIVE TWEAKS
+   RESPONSIVE – fullscreen on all devices
    ========================================== */
+
+/* Large screens (desktop) */
+@media (min-width: 1200px) {
+  .hud-stat {
+    padding: 0.5vmin 1.2vmin 0.5vmin 0.8vmin;
+    min-height: 3.8vmin;
+  }
+  .hud-label {
+    font-size: 0.8vmin;
+  }
+  .hud-value {
+    font-size: 1.6vmin;
+  }
+  .hud-xp-text {
+    font-size: 1vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-value {
+    font-size: 2.2vmin;
+  }
+  .skill-node {
+    width: 5.5vmin;
+    height: 5.5vmin;
+    font-size: 2.2vmin;
+  }
+}
+
+/* Tablets and small laptops */
+@media (max-width: 1024px) {
+  .hud-stat {
+    padding: 0.5vmin 1.2vmin 0.5vmin 0.8vmin;
+    min-height: 3.8vmin;
+  }
+  .hud-label {
+    font-size: 0.8vmin;
+  }
+  .hud-value {
+    font-size: 1.6vmin;
+  }
+  .hud-xp-text {
+    font-size: 1vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-value {
+    font-size: 2.2vmin;
+  }
+  .skill-node {
+    width: 5.5vmin;
+    height: 5.5vmin;
+    font-size: 2.2vmin;
+  }
+}
+
+/* Mobile phones (< 600px) */
 @media (max-width: 600px) {
   #hud {
     padding: 0.8vmin 1.6vmin;
@@ -715,6 +854,25 @@ html, body {
   }
   .hud-value {
     font-size: 1.5vmin;
+  }
+  .hud-xp-text {
+    font-size: 1vmin;
+  }
+  .hud-stat.level-stat {
+    min-height: 3.8vmin;
+    padding: 0.4vmin 1.2vmin 0.3vmin 0.6vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-value {
+    font-size: 2.2vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-label {
+    font-size: 0.8vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-xp-text {
+    font-size: 1vmin;
+  }
+  .level-xp-track {
+    height: 0.4vmin;
   }
   #comboBar {
     height: 1.8vmin;
@@ -754,6 +912,7 @@ html, body {
   }
 }
 
+/* Very small phones (< 400px) */
 @media (max-width: 400px) {
   #hud {
     padding: 0.5vmin 1vmin;
@@ -773,6 +932,26 @@ html, body {
   }
   .hud-value {
     font-size: 1.2vmin;
+  }
+  .hud-xp-text {
+    font-size: 0.8vmin;
+  }
+  .hud-stat.level-stat {
+    min-height: 3.2vmin;
+    padding: 0.3vmin 0.8vmin 0.2vmin 0.4vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-value {
+    font-size: 1.8vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-label {
+    font-size: 0.6vmin;
+  }
+  .hud-stat.level-stat .hud-info .hud-xp-text {
+    font-size: 0.8vmin;
+  }
+  .level-xp-track {
+    height: 0.3vmin;
+    border-width: 0.08vmin;
   }
   #comboBar {
     height: 1.4vmin;
@@ -798,5 +977,15 @@ html, body {
   .falling-leaf {
     width: 2.5vmin !important;
     height: 2.5vmin !important;
+  }
+}
+
+/* iPhone notch/rounded corners safe area */
+@supports (padding: max(0px)) {
+  #gameContainer {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 }

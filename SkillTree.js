@@ -3,25 +3,154 @@ class SkillTree {
     this.name = 'SkillTree';
     this.skills = {
       // --- Fortune branch (economy) ---
-      value:  { name: 'Rich Harvest', icon: '💰', desc: '+50% cents per leaf',        level: 0, max: 5, cost: 1, moneyCost: 40, color: '#ffd700', branch: 'fortune', tier: 1 },
-      combo:  { name: 'Combo Master', icon: '🔥', desc: 'Combo bonus +25%',           level: 0, max: 5, cost: 2, moneyCost: 55, color: '#ff8c1a', branch: 'fortune', tier: 2 },
-      golden: { name: 'Midas Touch',  icon: '✨', desc: '+2% golden leaf chance',      level: 0, max: 5, cost: 2, moneyCost: 70, color: '#ffb347', branch: 'fortune', tier: 2 },
-      // Fortune Capstone
-      goldenHoard: { name: 'Golden Hoard', icon: '👑', desc: 'All gold values doubled!', level: 0, max: 1, cost: 3, moneyCost: 150, color: '#ffd700', branch: 'fortune', tier: 3 },
+      value: {
+        name: 'Rich Harvest',
+        icon: '💰',
+        desc: 'Each level increases the value of every leaf by 50%.\nLevel 1: +50% | Level 5: +250% – dramatically increases your earnings over time.',
+        level: 0,
+        max: 5,
+        cost: 3,
+        moneyCost: 500,
+        color: '#ffd700',
+        branch: 'fortune',
+        tier: 1
+      },
+      combo: {
+        name: 'Combo Master',
+        icon: '🔥',
+        desc: 'Strengthens the combo multiplier by 25% per level.\nLevel 1: +25% | Level 5: +125% – makes long combos extremely profitable.',
+        level: 0,
+        max: 5,
+        cost: 4,
+        moneyCost: 700,
+        color: '#ff8c1a',
+        branch: 'fortune',
+        tier: 2
+      },
+      golden: {
+        name: 'Midas Touch',
+        icon: '✨',
+        desc: 'Increases the chance of golden leaves by 2% per level.\nBase: 2% | Level 5: 12% – golden leaves are worth 40 coins each.',
+        level: 0,
+        max: 5,
+        cost: 4,
+        moneyCost: 800,
+        color: '#ffb347',
+        branch: 'fortune',
+        tier: 2
+      },
+      goldenHoard: {
+        name: 'Golden Hoard',
+        icon: '👑',
+        desc: 'Doubles all gold values permanently.\nWorks with every other bonus – a powerful capstone that makes everything worth twice as much.',
+        level: 0,
+        max: 1,
+        cost: 8,
+        moneyCost: 2000,
+        color: '#ffd700',
+        branch: 'fortune',
+        tier: 3
+      },
 
       // --- Swift branch (player/collection) ---
-      speed:  { name: 'Swift Feet',   icon: '👟', desc: '+15% move speed',            level: 0, max: 5, cost: 1, moneyCost: 30, color: '#4fd1c5', branch: 'swift', tier: 1 },
-      big:    { name: 'Wide Basket',  icon: '🧺', desc: '+15% catch area',            level: 0, max: 3, cost: 2, moneyCost: 45, color: '#3fb8ac', branch: 'swift', tier: 2 },
-      magnet: { name: 'Leaf Magnet',  icon: '🧲', desc: 'Basket attracts leaves',     level: 0, max: 3, cost: 3, moneyCost: 90, color: '#2aa89c', branch: 'swift', tier: 2 },
-      // Swift Capstone
-      cycloneStep: { name: 'Cyclone Step', icon: '🌪️', desc: 'Instant catch all visible leaves!', level: 0, max: 1, cost: 3, moneyCost: 150, color: '#4fd1c5', branch: 'swift', tier: 3 },
+      speed: {
+        name: 'Swift Feet',
+        icon: '👟',
+        desc: 'Increases movement speed by 15% per level.\nLevel 1: +15% | Level 5: +75% – catch leaves faster and more efficiently.',
+        level: 0,
+        max: 5,
+        cost: 3,
+        moneyCost: 450,
+        color: '#4fd1c5',
+        branch: 'swift',
+        tier: 1
+      },
+      big: {
+        name: 'Wide Basket',
+        icon: '🧺',
+        desc: 'Expands the catch area by 15% per level.\nLevel 1: +15% | Level 3: +45% – makes catching leaves much easier without precise positioning.',
+        level: 0,
+        max: 3,
+        cost: 4,
+        moneyCost: 600,
+        color: '#3fb8ac',
+        branch: 'swift',
+        tier: 2
+      },
+      magnet: {
+        name: 'Leaf Magnet',
+        icon: '🧲',
+        desc: 'Leaves are attracted to your basket within range.\n+90px range per level | Level 3: 270px – leaves will move toward you.',
+        level: 0,
+        max: 3,
+        cost: 5,
+        moneyCost: 900,
+        color: '#2aa89c',
+        branch: 'swift',
+        tier: 2
+      },
+      cycloneStep: {
+        name: 'Cyclone Step',
+        icon: '🌪️',
+        desc: 'Instantly catches every leaf currently on the screen.\nA powerful once-per-level ability – useful for clearing the screen in emergencies.',
+        level: 0,
+        max: 1,
+        cost: 8,
+        moneyCost: 2000,
+        color: '#4fd1c5',
+        branch: 'swift',
+        tier: 3
+      },
 
       // --- Harvest branch (leaf spawning) ---
-      spawn:  { name: 'Autumn Storm', icon: '🍂', desc: 'More leaves fall',           level: 0, max: 5, cost: 1, moneyCost: 35, color: '#7cb342', branch: 'harvest', tier: 1 },
-      slow:   { name: 'Feather Fall', icon: '🪶', desc: 'Leaves fall slower',         level: 0, max: 5, cost: 2, moneyCost: 50, color: '#5a9a2c', branch: 'harvest', tier: 2 },
-      blue:   { name: 'Lucky Blue',   icon: '💎', desc: '+Blue leaf odds & value',    level: 0, max: 5, cost: 2, moneyCost: 65, color: '#3ac9ff', branch: 'harvest', tier: 2 },
-      // Harvest Capstone
-      naturesBlessing: { name: 'Nature\'s Blessing', icon: '🌳', desc: 'All leaves worth double!', level: 0, max: 1, cost: 3, moneyCost: 150, color: '#7cb342', branch: 'harvest', tier: 3 }
+      spawn: {
+        name: 'Autumn Storm',
+        icon: '🍂',
+        desc: 'Increases the rate leaves fall by 30% per level.\nLevel 1: +30% | Level 5: +150% – more leaves means more opportunities to catch and earn.',
+        level: 0,
+        max: 5,
+        cost: 3,
+        moneyCost: 450,
+        color: '#7cb342',
+        branch: 'harvest',
+        tier: 1
+      },
+      slow: {
+        name: 'Feather Fall',
+        icon: '🪶',
+        desc: 'Slows leaf fall speed by 8% per level.\nLevel 1: -8% | Level 5: -40% (minimum 20% speed) – gives you more time to position your basket.',
+        level: 0,
+        max: 5,
+        cost: 4,
+        moneyCost: 650,
+        color: '#5a9a2c',
+        branch: 'harvest',
+        tier: 2
+      },
+      blue: {
+        name: 'Lucky Blue',
+        icon: '💎',
+        desc: 'Increases blue leaf spawn chance by 1.5% per level.\nBase: 0.8% | Level 5: 8.3% – blue leaves grant +1 Skill Point when caught.',
+        level: 0,
+        max: 5,
+        cost: 4,
+        moneyCost: 800,
+        color: '#3ac9ff',
+        branch: 'harvest',
+        tier: 2
+      },
+      naturesBlessing: {
+        name: 'Nature\'s Blessing',
+        icon: '🌳',
+        desc: 'Doubles the value of every leaf you catch.\nWorks with all other bonuses – the ultimate harvest capstone that makes every leaf precious.',
+        level: 0,
+        max: 1,
+        cost: 8,
+        moneyCost: 2000,
+        color: '#7cb342',
+        branch: 'harvest',
+        tier: 3
+      }
     };
     this.available = 0;
     this.rootPurchased = false;
@@ -32,19 +161,18 @@ class SkillTree {
   getMoneyCost(id) {
     const s = this.skills[id];
     if (!s) return 0;
-    return Math.round(s.moneyCost * (1 + s.level * 0.8));
+    // Scaling: 90% per level
+    return Math.round(s.moneyCost * (1 + s.level * 0.9));
   }
 
-  // Root purchase
   buyRoot(money) {
     if (this.rootPurchased) return { success: false, reason: 'Already purchased' };
-    if (money < 500) return { success: false, reason: 'Need 500 coins' };
+    if (money < 1500) return { success: false, reason: 'Need 1,500 coins' };
     this.rootPurchased = true;
-    return { success: true, moneyCost: 500 };
+    return { success: true, moneyCost: 1500 };
   }
 
   buy(id, money) {
-    // Check root first
     if (!this.rootPurchased && id !== 'root') {
       return { success: false, reason: 'Unlock Leaf Knowledge first!' };
     }
@@ -72,18 +200,15 @@ class SkillTree {
   getBlueBonus() { return this.skills.blue.level * 0.015; }
   getBlueValueBonus() { return this.skills.blue.level * 3; }
 
-  // Capstone effects
   getGoldenHoardBonus() { return this.skills.goldenHoard.level > 0 ? 2 : 1; }
   getCycloneStepBonus() { return this.skills.cycloneStep.level > 0 ? 1 : 0; }
   getNaturesBlessingBonus() { return this.skills.naturesBlessing.level > 0 ? 2 : 1; }
 
-  // Get skill tier (1=specialization, 2=upgrade, 3=capstone)
   getTier(id) {
     const s = this.skills[id];
     return s ? s.tier || 1 : 1;
   }
 
-  // Get skills in a branch, ordered by tier
   getBranchSkills(branch) {
     const entries = Object.entries(this.skills);
     const filtered = entries.filter(([_, s]) => s.branch === branch);
@@ -91,7 +216,6 @@ class SkillTree {
     return filtered;
   }
 
-  // Check if a skill can be purchased
   canPurchase(id, money) {
     if (!this.rootPurchased) return { can: false, reason: 'Unlock Leaf Knowledge first!' };
 
@@ -118,14 +242,13 @@ class SkillTree {
     return { can: false, reason: 'Unknown' };
   }
 
-  // Get prerequisites for a skill (for display)
   getPrerequisites(id) {
     const s = this.skills[id];
     if (!s) return [];
     const tier = s.tier || 1;
     const branch = s.branch;
 
-    if (tier === 1) return ['Root: Leaf Knowledge'];
+    if (tier === 1) return ['Root: Leaf Knowledge (1,500 coins)'];
     if (tier === 2) {
       const tier1Skills = Object.entries(this.skills).filter(([_, sk]) => sk.branch === branch && (sk.tier || 1) === 1);
       return tier1Skills.map(([id2, sk]) => `${sk.name}`);
@@ -137,7 +260,6 @@ class SkillTree {
     return [];
   }
 
-  // Get what this skill unlocks (for display)
   getUnlocks(id) {
     const s = this.skills[id];
     if (!s) return [];

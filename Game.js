@@ -21,6 +21,11 @@ class Game {
     this.pointsAt = 5;
     this.leavesToNext = 5;
 
+    // --- LEVEL SYSTEM ---
+    this.level = 1;
+    this.xp = 0;
+    this.xpToNext = 250;
+
     this.keys = {};
 
     this.touchX = null;
@@ -37,14 +42,12 @@ class Game {
 
     this.tooltip = document.getElementById('skillTooltip');
 
-    // Scale – this will be set properly in setupResize
     this.scale = 1;
     this.viewW = 800;
     this.viewH = 600;
 
     this.isSkillPanelOpen = false;
 
-    // IMPORTANT: setupResize must be called BEFORE setup
     this.setupResize();
     this.setup();
     this.setupInput();
@@ -55,6 +58,15 @@ class Game {
 
     this.updateHUD();
     this.start();
+  }
+
+  /**
+   * NEXT SP MULTIPLIER
+   * Starts at 1.0x, increases by 0.5 per level, max 20.0x
+   */
+  getNextSpMultiplier() {
+    const multiplier = 1 + (this.level - 1) * 0.5;
+    return Math.min(multiplier, 20.0);
   }
 
   loadBackgroundFrames() {
@@ -73,15 +85,27 @@ class Game {
         this.bgLoadCount++;
         if (this.bgLoadCount === frameFiles.length) {
           this.bgLoaded = true;
+          console.log('✅ All background frames loaded');
         }
       };
       img.onerror = () => {
+        console.warn('Failed to load background frame:', src);
         this.bgFrames[index] = null;
         this.bgLoadCount++;
         if (this.bgLoadCount === frameFiles.length) {
           this.bgLoaded = true;
+          // Even if some frames fail, mark as loaded so the game doesn't break
         }
       };
+      // If image is already cached
+      if (img.complete && img.naturalWidth > 0) {
+        this.bgFrames[index] = img;
+        this.bgLoadCount++;
+        if (this.bgLoadCount === frameFiles.length) {
+          this.bgLoaded = true;
+          console.log('✅ All background frames loaded (cached)');
+        }
+      }
     });
   }
 
@@ -107,27 +131,22 @@ class Game {
         return;
       }
 
-      // Reference size – we use 800x600 as the base
       const refHeight = 600;
       const refWidth = 800;
       const scaleH = r.height / refHeight;
       const scaleW = r.width / refWidth;
-      // Use the smaller scale so everything fits
       let newScale = Math.min(scaleH, scaleW);
-      // Clamp to avoid extreme sizes
       newScale = Math.max(0.5, Math.min(1.8, newScale));
 
       this.scale = newScale;
       this.viewW = r.width;
       this.viewH = r.height;
 
-      // Update canvas size
       this.canvas.width = Math.floor(r.width * dpr);
       this.canvas.height = Math.floor(r.height * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this.ctx.imageSmoothingEnabled = false;
 
-      // Update player if it exists
       if (this.player) {
         const size = 64 * this.scale;
         this.player.width = size;
@@ -135,16 +154,9 @@ class Game {
         this.player.y = r.height - 100 * this.scale;
         this.player.x = Math.min(this.player.x, r.width - size);
       }
-
-      // Update combo bar position
-      const comboBar = document.getElementById('comboBar');
-      if (comboBar) {
-        comboBar.style.bottom = (8 * this.scale) + 'vh';
-      }
     };
     window.addEventListener('resize', fit);
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fit).observe(this.canvas);
-    // Call fit immediately to set initial scale
     fit();
     this.fit = fit;
   }
@@ -164,7 +176,6 @@ class Game {
       this.keys[e.key.toLowerCase()] = false;
     });
 
-    // Touch drag only – no leaf tapping
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       this.audio.forceResume();
@@ -284,8 +295,8 @@ class Game {
         cost.textContent = '✅ Purchased';
         level.textContent = '';
       } else {
-        cost.textContent = `💰 500 coins`;
-        level.textContent = this.money >= 500 ? '✅ Can afford' : '❌ Need 500 coins';
+        cost.textContent = `💰 1,500 coins`;
+        level.textContent = this.money >= 1500 ? '✅ Can afford' : '❌ Need 1,500 coins';
       }
     } else {
       const skill = this.skillTree.skills[nodeData.id];
@@ -335,7 +346,7 @@ class Game {
     const connections = [];
 
     const rootPurchased = this.skillTree.rootPurchased;
-    let rootState = rootPurchased ? 'root-purchased' : (this.money >= 500 ? 'root-affordable' : 'root-unaffordable');
+    let rootState = rootPurchased ? 'root-purchased' : (this.money >= 1500 ? 'root-affordable' : 'root-unaffordable');
 
     const rootNode = {
       id: 'root',
@@ -346,14 +357,14 @@ class Game {
       level: rootPurchased ? 1 : 0,
       max: 1,
       cost: 0,
-      moneyCost: 500,
+      moneyCost: 1500,
       branch: null,
       tier: 0,
       x: layout.root.x,
       y: layout.root.y,
       size: 'large',
       state: rootState,
-      purchasable: !rootPurchased && this.money >= 500,
+      purchasable: !rootPurchased && this.money >= 1500,
     };
     nodes.push(rootNode);
 
@@ -633,6 +644,56 @@ class Game {
     });
   }
 
+  // ============================================
+  //  LEVEL SYSTEM
+  // ============================================
+
+  gainXP(amount) {
+    this.xp += amount;
+    this.updateHUD();
+
+    while (this.xp >= this.xpToNext) {
+      this.xp -= this.xpToNext;
+      this.levelUp();
+    }
+  }
+
+  levelUp() {
+    this.level++;
+
+    this.xpToNext = 250 + (this.level * 50);
+
+    this.skillTree.addPoint();
+
+    if (this.level % 5 === 0) {
+      this.skillTree.addPoint();
+    }
+
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const cx = canvasRect.width / 2;
+    const cy = canvasRect.height / 2;
+
+    this.spawnParticles(cx, cy, 60, {
+      color: '#f5c842',
+      shape: 'star'
+    });
+
+    this.showFloatText('⭐ LEVEL UP!', cx, cy - 20, '#f5c842', 24);
+
+    const mul = this.getNextSpMultiplier();
+    this.showFloatText(`${mul.toFixed(1)}x NEXT SP`, cx, cy + 30, '#f5a842', 14);
+
+    if (this.level % 5 === 0) {
+      setTimeout(() => {
+        this.showFloatText('+1 BONUS SP!', cx, cy + 60, '#b19cd9', 16);
+      }, 400);
+    }
+
+    this.audio.playCombo(Math.min(this.level, 20));
+
+    this.updateHUD();
+  }
+
   spawnLeaf() {
     const { w } = this.getViewSize();
     const scale = this.scale || 1;
@@ -693,12 +754,22 @@ class Game {
     value *= this.skillTree.getGoldenHoardBonus();
     value *= this.skillTree.getNaturesBlessingBonus();
 
+    let xpGain = 0;
+    if (leaf.type === 'golden') {
+      xpGain = 15;
+    } else if (leaf.type === 'blue') {
+      xpGain = 8;
+    } else {
+      xpGain = leaf.value;
+    }
+    xpGain = Math.round(xpGain * comboMul);
+    this.gainXP(xpGain);
+
     this.audio.playCollect();
     if (this.combo > 1) {
       this.audio.playCombo(this.combo);
     }
 
-    // Money glow effect
     const moneyIcon = document.getElementById('moneyIcon');
     if (moneyIcon) {
       moneyIcon.classList.remove('money-glow');
@@ -722,19 +793,9 @@ class Game {
 
     this.money += value;
     this.leafCount++;
-    this.leavesToNext--;
 
-    if (leaf.blue) {
-      this.skillTree.addPoint();
-      const skillCard = document.getElementById('skillCard');
-      const skillRect = skillCard ? skillCard.getBoundingClientRect() : null;
-      if (skillRect && canvasRect) {
-        const targetX = skillRect.left + skillRect.width / 2 - canvasRect.left;
-        const targetY = skillRect.top + skillRect.height / 2 - canvasRect.top;
-        this.spawnFloatingStat(mx, my - 20, '+1 SP', targetX, targetY, '#b19cd9');
-      }
-      this.updateHUD();
-    }
+    const multiplier = this.getNextSpMultiplier();
+    this.leavesToNext -= multiplier;
 
     if (this.leavesToNext <= 0) {
       this.skillTree.addPoint();
@@ -749,6 +810,18 @@ class Game {
         this.spawnFloatingStat(mx, my - 60, '+1 SP', targetX, targetY, '#b19cd9');
       }
       this.spawnParticles(mx, my, 30, { color: '#b19cd9', shape: 'star' });
+    }
+
+    if (leaf.blue) {
+      this.skillTree.addPoint();
+      const skillCard = document.getElementById('skillCard');
+      const skillRect = skillCard ? skillCard.getBoundingClientRect() : null;
+      if (skillRect && canvasRect) {
+        const targetX = skillRect.left + skillRect.width / 2 - canvasRect.left;
+        const targetY = skillRect.top + skillRect.height / 2 - canvasRect.top;
+        this.spawnFloatingStat(mx, my - 20, '+1 SP', targetX, targetY, '#b19cd9');
+      }
+      this.updateHUD();
     }
 
     this.player.catchFlash();
@@ -790,7 +863,7 @@ class Game {
     el.style.color = color;
     el.style.fontSize = size + 'px';
     container.appendChild(el);
-    setTimeout(() => el.remove(), 1200);
+    setTimeout(() => el.remove(), 1800);
   }
 
   updateHUD() {
@@ -798,17 +871,29 @@ class Game {
     const leafEl = document.getElementById('leafValue');
     const skillEl = document.getElementById('skillValue');
     const progressEl = document.getElementById('leafProgressFill');
-    
+    const levelEl = document.getElementById('levelValue');
+    const xpFillEl = document.getElementById('levelXpFill');
+    const xpTextEl = document.getElementById('levelXpText');
+
     if (moneyEl) moneyEl.textContent = this.money;
     if (skillEl) skillEl.textContent = this.skillTree.available;
-    
+    if (levelEl) levelEl.textContent = this.level;
+
     const needed = this.pointsAt;
-    const collected = needed - this.leavesToNext;
+    const collected = Math.floor(needed - this.leavesToNext);
     if (leafEl) leafEl.textContent = `${collected} / ${needed}`;
     
     if (progressEl) {
       const pct = Math.min(100, (collected / needed) * 100);
       progressEl.style.width = pct + '%';
+    }
+
+    if (xpFillEl) {
+      const pct = Math.min(100, (this.xp / this.xpToNext) * 100);
+      xpFillEl.style.width = pct + '%';
+    }
+    if (xpTextEl) {
+      xpTextEl.textContent = `${this.xp} / ${this.xpToNext}`;
     }
 
     if (this.isSkillPanelOpen) {
@@ -1000,13 +1085,17 @@ class Game {
     const ctx = this.ctx;
     const scale = this.scale || 1;
 
+    // --- DRAW BACKGROUND FRAME ---
+    // If background is loaded and we have a valid frame, draw it fullscreen
     if (this.bgLoaded && this.bgFrames[this.currentFrame]) {
       ctx.drawImage(this.bgFrames[this.currentFrame], 0, 0, w, h);
     } else {
+      // If no frame is loaded, fill with solid dark color (minimal fallback)
       ctx.fillStyle = '#1a0e2e';
       ctx.fillRect(0, 0, w, h);
     }
 
+    // --- GROUND SHADOW OVERLAY ---
     ctx.fillStyle = 'rgba(15, 8, 20, 0.6)';
     ctx.beginPath();
     ctx.moveTo(0, h - 50 * scale);

@@ -8,7 +8,7 @@
 </head>
 <body>
   <div id="gameContainer">
-    <!-- HUD with two rows -->
+    <!-- HUD -->
     <div id="hud">
       <!-- TOP ROW: stats + button -->
       <div class="hud-top">
@@ -17,8 +17,20 @@
           <div class="hud-stat" id="moneyCard">
             <span class="hud-icon" id="moneyIcon">¢</span>
             <div class="hud-info">
-              <span class="hud-label">MONEY</span>
+              <span class="hud-label">MONEY :</span>
               <span class="hud-value" id="moneyValue">0</span>
+            </div>
+          </div>
+
+          <!-- LEVEL -->
+          <div class="hud-stat level-stat" id="levelCard">
+            <div class="hud-info">
+              <span class="hud-label">LEVEL :</span>
+              <span class="hud-value" id="levelValue">1</span>
+              <span class="hud-xp-text" id="levelXpText">0 / 50</span>
+            </div>
+            <div class="level-xp-track">
+              <div class="level-xp-fill" id="levelXpFill" style="width:0%"></div>
             </div>
           </div>
 
@@ -26,7 +38,7 @@
           <div class="hud-stat leaf-stat" id="leafCard">
             <span class="hud-icon" style="display:none;"></span>
             <div class="hud-info">
-              <span class="hud-label">NEXT SP</span>
+              <span class="hud-label">NEXT SP :</span>
               <span class="hud-value" id="leafValue">0 / 5</span>
             </div>
           </div>
@@ -35,7 +47,7 @@
           <div class="hud-stat" id="skillCard">
             <span class="hud-icon" style="display:none;"></span>
             <div class="hud-info">
-              <span class="hud-label">SKILL PTS</span>
+              <span class="hud-label">SKILL PTS :</span>
               <span class="hud-value" id="skillValue">0</span>
             </div>
           </div>
@@ -46,7 +58,7 @@
         </div>
       </div>
 
-      <!-- BOTTOM ROW: combo bar under stats -->
+      <!-- BOTTOM ROW: combo bar -->
       <div class="hud-bottom">
         <div id="comboBar">
           <div id="comboText">COMBO x0</div>
