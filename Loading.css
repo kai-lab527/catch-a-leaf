@@ -1,0 +1,123 @@
+/* ==========================================
+   CATCH-A-LEAF — LOADING SCREEN
+   Palette + type pulled straight from style.css
+   ========================================== */
+#loadingScreen {
+  --u: max(2px, 0.4vmin);               /* one "pixel" for borders + hard shadows */
+  --ls-panel: rgba(30, 20, 15, 0.85);
+  --ls-rust: #6b3a1a;
+  --ls-shadow: rgba(10, 5, 3, 0.55);
+  --ls-gold: #f5c842;
+  --ls-tan: #d4a06a;
+  --ls-cream: #f5e8d8;
+
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(2vmin, env(safe-area-inset-top))
+    max(2vmin, env(safe-area-inset-right))
+    max(2vmin, env(safe-area-inset-bottom))
+    max(2vmin, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 42%, #2d1b3d 0%, #1a0e2e 55%, #0a0514 100%);
+  color: var(--ls-cream);
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  image-rendering: pixelated;
+  overflow: hidden;
+  /* retro stepped fade instead of a smooth one */
+  transition: opacity 0.65s steps(6, end);
+}
+#loadingScreen::after {                 /* same vignette the game canvas uses */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.5) 100%);
+}
+#loadingScreen.is-leaving { opacity: 0; pointer-events: none; }
+
+#lsCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ls-stack {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.4vmin;
+  width: min(62vmin, 84vw);
+}
+
+/* empty square the canvas paints the bin into */
+.ls-binslot {
+  width: clamp(72px, 17vmin, 160px);
+  aspect-ratio: 1;
+}
+
+/* ===== BAR (same bones as the combo bar) ===== */
+.ls-bar {
+  width: 100%;
+  padding: var(--u);
+  background: var(--ls-panel);
+  border: var(--u) solid var(--ls-rust);
+  box-shadow: var(--u) var(--u) 0 var(--ls-shadow);
+  transition: border-color 0.1s steps(2);
+}
+.ls-segs {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: max(1px, 0.25vmin);
+  height: clamp(14px, 3.2vmin, 30px);
+}
+.ls-seg {
+  display: block;
+  background: rgba(255, 255, 255, 0.06);
+}
+.ls-seg:nth-child(3n + 1) { --c: #e8701a; }
+.ls-seg:nth-child(3n + 2) { --c: #f5a842; }
+.ls-seg:nth-child(3n)     { --c: #c84a1a; }
+.ls-seg.on   { background: var(--c); }
+.ls-seg.lead { background: var(--c); animation: lsBlink 0.5s steps(1) infinite; }
+@keyframes lsBlink { 50% { opacity: 0.25; } }
+
+/* ===== STATUS ROW ===== */
+.ls-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2vmin;
+  width: 100%;
+}
+.ls-label {
+  font-size: clamp(8px, 1.5vmin, 15px);
+  color: var(--ls-tan);
+  letter-spacing: 0.1vmin;
+  text-transform: uppercase;
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
+  white-space: nowrap;
+}
+.ls-pct {
+  font-size: clamp(10px, 2vmin, 20px);
+  color: var(--ls-gold);
+  text-shadow: 0.2vmin 0.2vmin 0 #0a0503;
+  white-space: nowrap;
+}
+
+/* ===== DONE: whole bar locks to gold ===== */
+#loadingScreen.is-done .ls-bar  { border-color: var(--ls-gold); }
+#loadingScreen.is-done .ls-seg  { background: var(--ls-gold); }
+#loadingScreen.is-done .ls-label { color: var(--ls-gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  #loadingScreen,
+  #loadingScreen * { transition: none !important; animation: none !important; }
+}
