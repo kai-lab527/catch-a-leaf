@@ -46,6 +46,7 @@ class Shop {
     if (!window.game || window.game.state !== 'playing') return;
     this.refreshMoney();
     this.render();
+    this.grid.scrollTop = 0;
     this.overlay.classList.add('is-open');
     this.overlay.setAttribute('aria-hidden', 'false');
     this.closeButton.focus();

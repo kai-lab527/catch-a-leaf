@@ -47,7 +47,7 @@ class Game {
     this.viewW = 800;
     this.viewH = 600;
 
-    this.playerFloor = 120; 
+    this.playerFloor = 132;
 
     this.setupResize();
     this.setup();
@@ -228,7 +228,6 @@ class Game {
     transition?.classList.remove('play');
     if (transition) { void transition.offsetWidth; transition.classList.add('play'); }
     await DeviceMode.enter(dev);
-    if (dev === 'android') this.playerFloor = 96;
     this.fit();
     await new Promise((resolve) => setTimeout(resolve, 420));
     startScreen.classList.add('hidden');
