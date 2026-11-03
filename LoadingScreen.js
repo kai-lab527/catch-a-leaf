@@ -33,20 +33,16 @@
   /* ---------------------------------------------------------------
    * MANIFEST — w = weight in the overall bar (music is the heavy one)
    * --------------------------------------------------------------- */
-  const SPR = 'Loading sprites', BGS = 'Loading backgrounds', SND = 'Loading sounds';
+  const SPR = 'Loading sprites', SND = 'Loading sounds';
   const assets = [
     { id: 'font',    kind: 'font',  group: 'Loading font', w: 1, timeout: 4000 },
     { id: 'bin',     kind: 'image', group: SPR, w: 1, src: 'Sprites/player_trashbin.png', timeout: 6000 },
     { id: 'normal',  kind: 'image', group: SPR, w: 1, src: 'Sprites/normal_maple_leaf.png' },
     { id: 'golden',  kind: 'image', group: SPR, w: 1, src: 'Sprites/golden_maple_leaf.png' },
     { id: 'blue',    kind: 'image', group: SPR, w: 1, src: 'Sprites/blue_maple_leaf.png' },
-    { id: 'bg1',     kind: 'image', group: BGS, w: 2, src: 'Sprites/background_image1.png' },
-    { id: 'bg2',     kind: 'image', group: BGS, w: 2, src: 'Sprites/background_image2.png' },
-    { id: 'bg3',     kind: 'image', group: BGS, w: 2, src: 'Sprites/background_image3.png' },
     { id: 'music',   kind: 'audio', group: SND, w: 6, src: 'sounds/music_loop_catch_a_leaf.mp3' },
     { id: 'collect', kind: 'audio', group: SND, w: 1, src: 'sounds/collect_catch_a_leaf.mp3' },
     { id: 'combo',   kind: 'audio', group: SND, w: 1, src: 'sounds/combo_catch_a_leaf.mp3' },
-    { id: 'buy',     kind: 'audio', group: SND, w: 1, src: 'sounds/buy_catch_a_leaf.mp3' },
     { id: 'game',    kind: 'game',  group: 'Starting game', w: 2, timeout: 6000 }
   ].map((a) => Object.assign({ frac: 0, done: false, ok: false, timeout: 15000 }, a));
 

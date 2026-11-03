@@ -2,8 +2,8 @@ class Particle extends GameObject {
   constructor(x, y, opts = {}) {
     super(x, y, 4, 4);
     this.name = 'Particle';
-    this.vx = opts.vx || (Math.random() - 0.5) * 200;
-    this.vy = opts.vy || (Math.random() - 0.8) * 200;
+    this.vx = opts.vx !== undefined ? opts.vx : (Math.random() - 0.5) * 200;
+    this.vy = opts.vy !== undefined ? opts.vy : (Math.random() - 0.8) * 200;
     this.life = opts.life || 0.6;
     this.maxLife = this.life;
     this.color = opts.color || '#ffd700';
@@ -34,8 +34,11 @@ class Particle extends GameObject {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
     ctx.fillStyle = this.color;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = this.color;
+    // Per-particle shadowBlur murders mobile GPUs; only pay for it at full quality.
+    if (GameObject.glow >= 1) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.color;
+    }
     if (this.shape === 'star') {
       this._drawStar(ctx, 0, 0, this.size, this.size * 0.5, 5);
     } else if (this.shape === 'circle') {

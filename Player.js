@@ -4,6 +4,7 @@ class Player extends GameObject {
     this.name = 'Player';
     this.speed = 380;
     this.catchFlashTimer = 0;
+    this.catchBonus = 0;
     this.bobPhase = 0;
     this.sprite = null;
     this.spriteLoaded = false;
@@ -121,7 +122,7 @@ class Player extends GameObject {
   }
 
   getCatchBounds() {
-    const padding = 15;
+    const padding = 15 + this.catchBonus;
     return {
       x: this.x - padding,
       y: this.y - padding,

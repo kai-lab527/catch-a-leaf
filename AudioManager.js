@@ -9,6 +9,9 @@ class AudioManager {
     this.loading = false;
     this._pendingMusic = false;
     this.html5Music = null; // fallback
+    this.tapSound = new Audio('sounds/tap_notif.mp3');
+    this.tapSound.preload = 'auto';
+    this.tapSound.volume = this.volume;
 
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -32,18 +35,15 @@ class AudioManager {
     console.log('Loading sounds via Web Audio...');
 
     try {
-      const [collect, music, combo, buy] = await Promise.all([
+      const [collect, music, combo] = await Promise.all([
         this.loadBuffer('sounds/collect_catch_a_leaf.mp3'),
         this.loadBuffer('sounds/music_loop_catch_a_leaf.mp3'),
-        this.loadBuffer('sounds/combo_catch_a_leaf.mp3'),
-        this.loadBuffer('sounds/buy_catch_a_leaf.mp3')
+        this.loadBuffer('sounds/combo_catch_a_leaf.mp3')
       ]);
 
       this.sounds.collect = collect;
       this.sounds.music = music;
       this.sounds.combo = combo;
-      this.sounds.buy = buy;
-
       this.ready = true;
       this.loading = false;
 
@@ -51,8 +51,6 @@ class AudioManager {
       console.log('  collect:', !!collect);
       console.log('  music:', !!music);
       console.log('  combo:', !!combo);
-      console.log('  buy:', !!buy);
-
       if (this._pendingMusic) {
         this._pendingMusic = false;
         this.playMusic();
@@ -70,11 +68,9 @@ class AudioManager {
     this.html5Music.volume = this.volume * 0.8;
     this.html5Music.preload = 'auto';
 
-    // Also preload others as HTML5 for collect/buy/combo
+    // Also preload the collection and combo effects as HTML5.
     this.sounds.collectHTML5 = new Audio('sounds/collect_catch_a_leaf.mp3');
     this.sounds.collectHTML5.volume = this.volume;
-    this.sounds.buyHTML5 = new Audio('sounds/buy_catch_a_leaf.mp3');
-    this.sounds.buyHTML5.volume = this.volume * 0.7;
     this.sounds.comboHTML5 = new Audio('sounds/combo_catch_a_leaf.mp3');
     this.sounds.comboHTML5.volume = this.volume * 0.4;
 
@@ -144,26 +140,9 @@ class AudioManager {
     }
   }
 
-  playBuy() {
-    this.forceResume();
-    if (this.ctx && this.ready && this.sounds.buy) {
-      try {
-        const source = this.ctx.createBufferSource();
-        source.buffer = this.sounds.buy;
-        const gain = this.ctx.createGain();
-        gain.gain.value = this.volume * 0.7;
-        source.connect(gain);
-        gain.connect(this.ctx.destination);
-        source.start();
-        return;
-      } catch(e) { console.warn('Web Audio buy failed', e); }
-    }
-    if (this.sounds.buyHTML5) {
-      try {
-        this.sounds.buyHTML5.currentTime = 0;
-        this.sounds.buyHTML5.play().catch(() => {});
-      } catch(e) {}
-    }
+  playTap() {
+    this.tapSound.currentTime = 0;
+    this.tapSound.play().catch(err => console.warn('Menu tap sound failed', err));
   }
 
   playMusic() {
@@ -243,7 +222,7 @@ class AudioManager {
       this.html5Music.volume = this.volume * 0.8;
     }
     if (this.sounds.collectHTML5) this.sounds.collectHTML5.volume = this.volume;
-    if (this.sounds.buyHTML5) this.sounds.buyHTML5.volume = this.volume * 0.7;
     if (this.sounds.comboHTML5) this.sounds.comboHTML5.volume = this.volume * 0.4;
+    this.tapSound.volume = this.volume;
   }
 }
