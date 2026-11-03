@@ -21,10 +21,6 @@
 	.device-slash{width:88vw;transform:translate(-50%,-50%) rotate(34deg)}
 }
 
-#rotateHint{display:none;position:fixed;inset:0;z-index:20000;background:#1a0e2e;color:#f5c842;flex-direction:column;align-items:center;justify-content:center;gap:3vmin;font:700 clamp(12px,3vmin,22px) 'Press Start 2P',monospace;text-align:center}
-#rotateHint span{font-size:16vmin;animation:rotHint 1.6s steps(8) infinite}
-@keyframes rotHint{50%{transform:rotate(-90deg)}}
-html[data-device="android"].is-portrait #rotateHint{display:flex}
 html[data-device="android"] #gameContainer{width:100vw;height:100vh;height:100dvh}
 html[data-device="android"] .hud-label{font-size:8px!important}
 html[data-device="android"] .hud-value{font-size:13px!important}

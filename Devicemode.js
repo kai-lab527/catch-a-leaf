@@ -1,5 +1,4 @@
-/* DeviceMode.js - laptop / android switch. Android = fullscreen + landscape lock,
-   with a "rotate your phone" overlay as the fallback when the browser refuses to lock. */
+/* DeviceMode.js - laptop / android switch. Android uses fullscreen portrait mode. */
 const DeviceMode = {
   mode: 'laptop',
   async enter(mode) {
@@ -7,7 +6,7 @@ const DeviceMode = {
     document.documentElement.dataset.device = mode;
     if (mode === 'android') {
       try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
-      try { await screen.orientation.lock('landscape'); } catch (e) {}
+      try { await screen.orientation.lock('portrait'); } catch (e) {}
       this.watch();
     } else {
       try { screen.orientation.unlock(); } catch (e) {}
@@ -15,8 +14,6 @@ const DeviceMode = {
     this.sync();
   },
   sync() {
-    const portrait = this.mode === 'android' && window.innerHeight > window.innerWidth;
-    document.documentElement.classList.toggle('is-portrait', portrait);
     if (window.game && window.game.fit) window.game.fit();
   },
   watch() {

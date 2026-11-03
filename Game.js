@@ -412,7 +412,7 @@ class Game {
       }
     }
 
-    if (this.state !== 'playing' || document.documentElement.classList.contains('is-portrait')) return;
+    if (this.state !== 'playing') return;
 
     const { w, h } = this.getViewSize();
     this.player.speed = 380 * scale * this.shopBonuses.moveSpeed;
