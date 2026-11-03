@@ -1,4 +1,4 @@
-/* UPGRADES.css - device menu, skill info, and Android landscape */
+/* UPGRADES.css - device menu, skill info, and Android portrait */
 #deviceMenu{display:none;position:absolute;inset:0;z-index:2;pointer-events:none}
 #startScreen.pick-device #deviceMenu{display:block;animation:deviceReveal .35s steps(6) both}
 @keyframes deviceReveal{from{opacity:0;clip-path:inset(0 50% 0 50%)}to{opacity:1;clip-path:inset(0)}}
