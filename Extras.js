@@ -329,14 +329,15 @@
     const st = document.createElement('style');
     st.id = 'plusCSS';
     st.textContent = `
-.fx-tray{position:absolute;top:max(1.6vmin,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.8vmin;pointer-events:none!important;z-index:12}
-.fx-chip{position:relative;display:flex;align-items:center;gap:.9vmin;min-width:clamp(150px,24vmin,230px);padding:.8vmin 1.2vmin 1.1vmin;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
+.fx-notifications{position:absolute;top:max(64px,calc(env(safe-area-inset-top) + 58px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;width:min(86vw,340px);pointer-events:none!important;z-index:12}
+.fx-tray{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;pointer-events:none!important}
+.fx-chip{position:relative;display:flex;align-items:center;gap:.9vmin;width:100%;min-width:0;padding:.8vmin 1.2vmin 1.1vmin;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
 .fx-chip canvas,.fx-chip img{flex:none;object-fit:contain;image-rendering:pixelated}
 .fx-chip b{margin-left:auto;color:var(--c);font-weight:700}
 .fx-chip.warn{animation:fxBlink .4s steps(1) infinite}
 .fx-bar{position:absolute;left:0;right:0;bottom:0;height:max(3px,.5vmin);background:rgba(255,255,255,.08)}
 .fx-bar u{display:block;height:100%;width:100%;background:var(--c);text-decoration:none}
-.fx-challenge{width:min(86vw,340px);padding:8px 10px 11px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
+.fx-challenge{width:100%;padding:8px 10px 11px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
 .fx-challenge[hidden]{display:none}
 .fx-challenge-top{display:flex;justify-content:space-between;gap:8px;color:#ffd51b}
 .fx-challenge-title{display:block;margin:4px 0;color:#f5e8d8}
@@ -346,7 +347,7 @@
 @keyframes fxChipIn{from{transform:translateY(-1.5vmin) scale(.9);opacity:0}to{transform:none;opacity:1}}
 @keyframes fxBlink{50%{opacity:.35}}
 
-.fx-toasts{position:absolute;right:max(1.6vmin,env(safe-area-inset-right));top:calc(max(1.6vmin,env(safe-area-inset-top)) + clamp(46px,8vmin,66px));display:flex;flex-direction:column;gap:1vmin;width:min(46vw,280px);pointer-events:none!important;z-index:13}
+.fx-toasts{position:relative;inset:auto;display:flex;flex-direction:column;gap:8px;width:100%;pointer-events:none!important}
 .fx-toast{padding:1vmin 1.3vmin;background:#21131c;border:max(2px,.3vmin) solid #ffd51b;box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 #08040e;color:#f5e8d8;font:700 clamp(7px,1.05vmin,10px)/1.6 'Press Start 2P','Courier New',monospace;animation:fxToast 3.6s steps(6) both}
 .fx-toast strong{display:block;color:#ffd51b}
 .fx-toast small{display:block;color:#d4a06a;font-size:inherit}
@@ -473,7 +474,9 @@
 
       this.tray = el('div', 'fx-tray');
       this.toasts = el('div', 'fx-toasts');
-      hud.append(this.tray, this.toasts);
+      this.notifications = el('div', 'fx-notifications');
+      this.notifications.append(this.tray, this.toasts);
+      hud.appendChild(this.notifications);
 
       this.challengeCard = el('section', 'fx-challenge');
       this.challengeCard.hidden = true;
@@ -991,7 +994,7 @@
       r.textContent = a.reward ? '+' + fmt(a.reward) + '\u00A2' : (a.timeLimit ? 'TIME LIMIT: ' + this.formatChallengeTime(a.timeLimit) : '');
       t.append(k, n, d, r);
       this.toasts.appendChild(t);
-      while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
+      while (this.toasts.children.length > 1) this.toasts.firstChild.remove();
       setTimeout(() => t.remove(), 3700);
     }
     formatChallengeTime(seconds) {

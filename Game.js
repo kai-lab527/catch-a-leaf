@@ -29,6 +29,7 @@ class Game {
     this.keys = {};
 
     this.touchX = null;
+    this.touchOffsetX = 0;
     this.touchActive = false;
 
     this.audio = new AudioManager();
@@ -162,7 +163,8 @@ class Game {
           touchX > this.player.x + this.player.width + hitPadding ||
           touchY < this.player.y - hitPadding ||
           touchY > this.player.y + this.player.height + hitPadding) return;
-      this.touchX = touchX;
+      this.touchOffsetX = touchX - this.player.x;
+      this.touchX = this.player.x;
       this.touchActive = true;
     }, { passive: false });
 
@@ -171,19 +173,21 @@ class Game {
       if (this.state !== 'playing' || !this.touchActive) return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
-      this.touchX = touch.clientX - rect.left;
+      this.touchX = touch.clientX - rect.left - this.touchOffsetX;
     }, { passive: false });
 
     this.canvas.addEventListener('touchend', (e) => {
       e.preventDefault();
       this.touchActive = false;
       this.touchX = null;
+      this.touchOffsetX = 0;
     }, { passive: false });
 
     this.canvas.addEventListener('touchcancel', (e) => {
       e.preventDefault();
       this.touchActive = false;
       this.touchX = null;
+      this.touchOffsetX = 0;
     }, { passive: false });
   }
 
@@ -438,12 +442,7 @@ class Game {
     if (this.keys['d'] || this.keys['arrowright']) dx = 1;
 
     if (this.touchActive && this.touchX !== null) {
-      const targetX = this.touchX - this.player.width / 2;
-      const diff = targetX - this.player.x;
-      if (Math.abs(diff) > 2) {
-        this.player.x += Math.min(Math.abs(diff), this.player.speed * dt) * Math.sign(diff);
-        this.player.x = Math.max(0, Math.min(this.player.x, w - this.player.width));
-      } else this.player.x = targetX;
+      this.player.x = Math.max(0, Math.min(this.touchX, w - this.player.width));
       dx = 0;
     }
 

@@ -27,9 +27,9 @@ class Shop {
       { id: 'leafRadar', code: 'LR', icon: 9, name: 'Leaf Radar', effect: '+100px magnet range', copy: 'Adds a gentle magnet and extends its reach. Stacks with Sticky Fingers.', price: 1000, max: 5, color: '#67d6d2' }
     ];
     this.varieties = [
-      { id: 'fern', name: 'Fern Frond', effect: 'Worth 6¢ per catch', copy: 'Add fern fronds to the falling-leaf pool.', price: 180, sprite: 'fern_frond.png', color: '#83b84a' },
-      { id: 'ginkgo', name: 'Ginkgo Fan', effect: 'Worth 9¢ per catch', copy: 'Add golden ginkgo fans to the falling-leaf pool.', price: 420, sprite: 'ginkgo_leaf.png', color: '#f0c84b' },
-      { id: 'oak', name: 'Oak Leaf', effect: 'Worth 13¢ per catch', copy: 'Add fiery oak leaves to the falling-leaf pool.', price: 800, sprite: 'oak_leaf.png', color: '#d98232' }
+      { id: 'fern', name: 'Fern Frond', effect: 'Worth 6¢ per catch', copy: 'Add fern fronds to the falling-leaf pool.', price: 1000, sprite: 'fern_frond.png', color: '#83b84a' },
+      { id: 'ginkgo', name: 'Ginkgo Fan', effect: 'Worth 9¢ per catch', copy: 'Add golden ginkgo fans to the falling-leaf pool.', price: 2500, sprite: 'ginkgo_leaf.png', color: '#f0c84b' },
+      { id: 'oak', name: 'Oak Leaf', effect: 'Worth 13¢ per catch', copy: 'Add fiery oak leaves to the falling-leaf pool.', price: 5000, sprite: 'oak_leaf.png', color: '#d98232' }
     ];
     this.boot();
   }
