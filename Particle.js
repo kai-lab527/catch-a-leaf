@@ -34,7 +34,7 @@ class Particle extends GameObject {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
     ctx.fillStyle = this.color;
-    // Per-particle shadowBlur murders mobile GPUs; only pay for it at full quality.
+    // Scale particle glow with the selected graphics quality.
     if (GameObject.glow > 0) {
       ctx.shadowBlur = 8 * GameObject.glow;
       ctx.shadowColor = this.color;

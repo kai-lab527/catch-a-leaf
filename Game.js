@@ -155,7 +155,14 @@ class Game {
       if (this.state !== 'playing') return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
-      this.touchX = touch.clientX - rect.left;
+      const touchX = touch.clientX - rect.left;
+      const touchY = touch.clientY - rect.top;
+      const hitPadding = Math.max(12, this.player.width * 0.25);
+      if (touchX < this.player.x - hitPadding ||
+          touchX > this.player.x + this.player.width + hitPadding ||
+          touchY < this.player.y - hitPadding ||
+          touchY > this.player.y + this.player.height + hitPadding) return;
+      this.touchX = touchX;
       this.touchActive = true;
     }, { passive: false });
 

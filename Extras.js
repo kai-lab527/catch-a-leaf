@@ -375,15 +375,6 @@
   .fx-rebirthbtn{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 76px);width:50px;height:50px}
 }
 
-.fx-movebtn{display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom) + 13vmin);width:clamp(48px,13vmin,68px);height:clamp(48px,13vmin,68px);padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.58);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;z-index:11}
-.fx-movebtn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:translate(-50%,-50%)}
-.fx-movebtn.left{left:max(4vw,env(safe-area-inset-left))}
-.fx-movebtn.left::before{border-right:14px solid currentColor}
-.fx-movebtn.right{right:max(4vw,env(safe-area-inset-right))}
-.fx-movebtn.right::before{border-left:14px solid currentColor}
-.fx-movebtn:active,.fx-movebtn.is-pressed{background:transparent;color:rgba(255,255,255,.95)}
-@media (max-width:700px){.fx-movebtn{display:block}}
-
 .fx-pause{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:2vmin;background:rgba(10,5,20,.84)}
 .fx-pause[hidden]{display:none}
 .fx-panel{width:min(94vw,560px);max-height:min(92vh,760px);max-height:min(92dvh,760px);display:flex;flex-direction:column;gap:14px;padding:clamp(14px,2.4vmin,26px);color:#f5e8d8;background:#170b28;border:3px solid #744018;box-shadow:6px 6px 0 #08040e;font-family:'Pixelify Sans','Press Start 2P',monospace}
@@ -523,23 +514,11 @@
       this.rebirthButton.append(rebirthIcon, this.rebirthCount);
       hud.appendChild(this.rebirthButton);
 
-      this.arrowButtons = [
-        ['left', 'arrowleft'],
-        ['right', 'arrowright']
-      ].map(([direction, key]) => {
-        const button = el('button', 'fx-movebtn ' + direction);
-        button.type = 'button';
-        button.setAttribute('aria-label', 'Move ' + direction);
-        this.bindArrowButton(button, key);
-        hud.appendChild(button);
-        return button;
-      });
-
       this.panel = el('div', 'fx-pause');
       this.panel.hidden = true;
       this.panel.innerHTML = `
         <div class="fx-panel" role="dialog" aria-modal="true" aria-label="Paused">
-          <h2>PAUSED</h2>
+          <h2>Paused</h2>
           <div class="fx-grid" data-role="stats"></div>
           <label class="fx-vol"><span>VOL</span><input type="range" min="0" max="100" step="1" data-role="vol" aria-label="Volume"></label>
           <div class="fx-quality">
@@ -553,7 +532,7 @@
           <section class="fx-controls" aria-labelledby="fxControlsTitle">
             <h3 id="fxControlsTitle">CONTROLS</h3>
             <div class="fx-control-row"><span>Move</span><b>A / D or ← / →</b></div>
-            <div class="fx-control-row"><span>Touch</span><b>Drag to move</b></div>
+            <div class="fx-control-row"><span>Touch</span><b>Drag the player</b></div>
             <div class="fx-control-row"><span>Pause</span><b>P</b></div>
             <div class="fx-control-row"><span>Resume</span><b>P or Esc</b></div>
           </section>
@@ -598,44 +577,6 @@
         if (CONFIG.features.pause && !this.shopOpen()) this.pause();
       });
       window.addEventListener('pagehide', () => this.save());
-      window.addEventListener('blur', () => this.releaseArrowButtons());
-    }
-
-    bindArrowButton(button, key) {
-      const release = () => {
-        this.g.keys[key] = false;
-        button.classList.remove('is-pressed');
-      };
-      button.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (this.g.state !== 'playing') return;
-        this.g.audio.forceResume();
-        this.g.keys[key] = true;
-        button.classList.add('is-pressed');
-        button.setPointerCapture(event.pointerId);
-      });
-      button.addEventListener('pointerup', release);
-      button.addEventListener('pointercancel', release);
-      button.addEventListener('lostpointercapture', release);
-      button.addEventListener('keydown', (event) => {
-        if (event.key !== ' ' && event.key !== 'Enter') return;
-        event.preventDefault();
-        if (this.g.state === 'playing') {
-          this.g.keys[key] = true;
-          button.classList.add('is-pressed');
-        }
-      });
-      button.addEventListener('keyup', (event) => {
-        if (event.key === ' ' || event.key === 'Enter') release();
-      });
-      button.addEventListener('blur', release);
-    }
-
-    releaseArrowButtons() {
-      this.g.keys.arrowleft = false;
-      this.g.keys.arrowright = false;
-      for (const button of this.arrowButtons) button.classList.remove('is-pressed');
     }
 
     shopOpen() {
@@ -651,7 +592,6 @@
     pause() {
       const g = this.g;
       if (g.state !== 'playing' || this.shopOpen()) return;
-      this.releaseArrowButtons();
       g.state = 'paused';
       g.touchActive = false; g.touchX = null;
       if (g.audio) g.audio.pauseMusic();
