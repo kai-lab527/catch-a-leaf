@@ -2,7 +2,7 @@
  * LoadingScreen.js — Catch-A-Leaf
  *
  * Preloads every sprite / sound the game uses, plus the pixel font and the
- * Game instance itself. Each finished asset drops a leaf into the trash bin.
+ * Game instance itself. Each finished asset drops a leaf into the catcher.
  * Never blocks the game: every asset has a timeout and a fallback, and a hard
  * timeout force-finishes the screen if something hangs.
  *
@@ -36,7 +36,8 @@
   const SPR = 'Loading sprites', SND = 'Loading sounds';
   const assets = [
     { id: 'font',    kind: 'font',  group: 'Loading font', w: 1, timeout: 4000 },
-    { id: 'bin',     kind: 'image', group: SPR, w: 1, src: 'Sprites/player_trashbin.png', timeout: 6000 },
+    { id: 'catcherOpen', kind: 'image', group: SPR, w: 1, src: 'Sprites/leaf_catcher_open.png', timeout: 6000 },
+    { id: 'catcherClosed', kind: 'image', group: SPR, w: 1, src: 'Sprites/leaf_catcher_closed.png', timeout: 6000 },
     { id: 'normal',  kind: 'image', group: SPR, w: 1, src: 'Sprites/normal_maple_leaf.png' },
     { id: 'golden',  kind: 'image', group: SPR, w: 1, src: 'Sprites/golden_maple_leaf.png' },
     { id: 'blue',    kind: 'image', group: SPR, w: 1, src: 'Sprites/blue_maple_leaf.png' },
@@ -123,7 +124,9 @@
     a.done = true; a.ok = !!r.ok; a.frac = 1;
     if (!a.ok) console.warn('[LoadingScreen] using fallback for', a.id);
     if (a.kind === 'image' && r.ok) images[a.id] = r.img;
-    if (a.id === 'bin') setupBin(r.ok ? r.img : null);
+    if (a.id === 'catcherOpen' || a.id === 'catcherClosed') {
+      setupBin(images.catcherOpen, images.catcherClosed);
+    }
     dropQueue.push(a.kind === 'audio' ? 'blue' : a.kind === 'game' ? 'golden' : 'normal');
   }
 
@@ -149,38 +152,40 @@
     golden: { b: '#ffd700', d: '#b8860b', h: '#fff4a3', s: '#6b4a00' },
     blue:   { b: '#29b6f6', d: '#0d6fa8', h: '#a3e3ff', s: '#08344a' }
   };
-  const BIN_ROWS = ['...hhhh...', 'llllllllll', '.dddddddd.', '.bbdbbdbb.', '.bbdbbdbb.',
-                    '.bbdbbdbb.', '.bbdbbdbb.', '.bbdbbdbb.', '..bdbbdb..', '..dddddd..'];
-  const BIN_PAL = { h: '#8fb08f', l: '#a3c2a3', b: '#5a7a5a', d: '#3a5a3a' };
-
   const leafSprite = (type) => images[type] || pixelArt('leaf-' + type, LEAF_ROWS, LEAF_PAL[type], 6);
-
-  // Same white-pixel cutout Player.js does, so the bin looks identical here.
-  function cutout(img) {
-    try {
-      const c = document.createElement('canvas');
-      c.width = c.height = 64;
-      const g = c.getContext('2d');
-      g.drawImage(img, 0, 0, 64, 64);
-      const d = g.getImageData(0, 0, 64, 64), p = d.data;
-      for (let i = 0; i < p.length; i += 4) {
-        if ((p[i] > 180 && p[i + 1] > 180 && p[i + 2] > 180) || (p[i] + p[i + 1] + p[i + 2]) / 3 > 200) p[i + 3] = 0;
-      }
-      g.putImageData(d, 0, 0);
-      return c;
-    } catch (e) { return null; }          // tainted canvas -> fallback bin
-  }
 
   /* ---------------------------------------------------------------
    * SCENE STATE
    * --------------------------------------------------------------- */
   const cv = $('lsCanvas'), g = cv.getContext('2d'), slot = $('lsBinSlot');
-  const bin = { x: 0, y: 0, s: 80, sprite: null, readyAt: 0, flash: 0, squash: 0 };
+  const bin = { x: 0, y: 0, s: 80, spriteOpen: null, spriteClosed: null, readyAt: 0, flash: 0, squash: 0 };
   const ambient = [], drops = [], parts = [], dropQueue = [];
   let W = 0, H = 0, lastDrop = 0;
 
-  function setupBin(img) {
-    bin.sprite = (img && cutout(img)) || pixelArt('bin', BIN_ROWS, BIN_PAL, 6);
+  function createCatcherFallback() {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#392119';
+    ctx.fillRect(10, 25, 44, 27);
+    ctx.fillStyle = '#724322';
+    ctx.fillRect(13, 28, 38, 21);
+    ctx.fillStyle = '#a86d35';
+    ctx.fillRect(8, 21, 48, 9);
+    ctx.fillStyle = '#d5a35b';
+    ctx.fillRect(11, 18, 42, 5);
+    ctx.fillStyle = '#e2bd78';
+    ctx.fillRect(16, 33, 5, 4);
+    ctx.fillRect(25, 39, 5, 4);
+    ctx.fillRect(40, 32, 5, 4);
+    return canvas;
+  }
+
+  function setupBin(open, closed) {
+    const fallback = open || closed || createCatcherFallback();
+    bin.spriteOpen = open || fallback;
+    bin.spriteClosed = closed || open || fallback;
     bin.readyAt = performance.now();
   }
 
@@ -262,7 +267,7 @@
     }
 
     if (reduce) dropQueue.length = 0;       // no motion: skip the falling leaves
-    if (dropQueue.length && bin.sprite && now - bin.readyAt > 250 && now - lastDrop > CFG.dropGapMs) {
+    if (dropQueue.length && bin.spriteOpen && now - bin.readyAt > 250 && now - lastDrop > CFG.dropGapMs) {
       lastDrop = now;
       spawnDrop(dropQueue.shift());
     }
@@ -316,7 +321,7 @@
       g.restore();
     }
 
-    if (bin.sprite) {
+    if (bin.spriteOpen) {
       const s = bin.s, t = now / 1000;
       const fade = clamp((now - bin.readyAt) / 400, 0, 1);
       const bob = reduce ? 0 : Math.sin(t * 3) * 2;
@@ -330,7 +335,7 @@
       g.translate(0, -s / 2);
       g.shadowBlur = bin.flash > 0 ? 30 : 15;
       g.shadowColor = bin.flash > 0 ? '#ffd700' : 'rgba(255, 200, 100, 0.3)';
-      g.drawImage(bin.sprite, -s / 2, -s / 2, s, s);
+      g.drawImage(bin.flash > 0 ? bin.spriteClosed : bin.spriteOpen, -s / 2, -s / 2, s, s);
       if (bin.flash > 0) {
         const k = bin.flash / 0.3, spread = (1 - k) * s * 0.18;
         g.globalAlpha = fade * k;

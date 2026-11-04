@@ -363,10 +363,21 @@ class Game {
     }
 
     this.money += value;
-    this.player.catchFlash();
+    this.player.catchLeaf(leaf.sprite);
     this.spawnParticles(mx, my, (leaf.golden || leaf.blue) ? 25 : 12, { 
       color: leaf.color, shape: leaf.blue ? 'star' : undefined 
     });
+    this.updateHUD();
+  }
+
+  collectHazard(hazard, mx, my) {
+    if (hazard.collected) return;
+    this.combo = 0;
+    this.comboTimer = 0;
+    this.money = Math.max(0, this.money - Hazard.penalty);
+    this.player.catchHazard(hazard.sprite);
+    this.showFloatText(`OUCH! -${Hazard.penalty}¢`, mx, my, '#ff544f', 16);
+    this.spawnParticles(mx, my, 14, { color: '#e34f3c' });
     this.updateHUD();
   }
 
@@ -455,7 +466,7 @@ class Game {
     this.player.bobPhase += dt * 3;
 
     if (this.keys['w'] || this.keys['arrowup']) this.player.catchFlashTimer = 0.2;
-    if (this.player.catchFlashTimer > 0) this.player.catchFlashTimer -= dt;
+    this.player.updateCatch(dt);
 
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0) {
@@ -472,7 +483,7 @@ class Game {
       }
 
       leaf.update(dt * this.shopBonuses.fallSpeed, h, 1);
-      if (this.shopBonuses.magnet > 0 && this.shopBonuses.magnetRange > 0) {
+      if (!leaf.isHazard && this.shopBonuses.magnet > 0 && this.shopBonuses.magnetRange > 0) {
         const playerCenter = this.player.x + this.player.width / 2;
         const leafCenter = leaf.x + leaf.width / 2;
         const distance = playerCenter - leafCenter;
@@ -483,7 +494,10 @@ class Game {
       const b = leaf.getBounds();
       if (b.x < catchBounds.x + catchBounds.width && b.x + b.width > catchBounds.x &&
           b.y < catchBounds.y + catchBounds.height && b.y + b.height > catchBounds.y) {
-        this.collectLeaf(leaf, leaf.x + leaf.width / 2, leaf.y + leaf.height / 2, false);
+        const mx = leaf.x + leaf.width / 2;
+        const my = leaf.y + leaf.height / 2;
+        if (leaf.isHazard) this.collectHazard(leaf, mx, my);
+        else this.collectLeaf(leaf, mx, my, false);
         leaf.collect();
         this.leaves.splice(i, 1); this.entities.splice(this.entities.indexOf(leaf), 1);
         continue;

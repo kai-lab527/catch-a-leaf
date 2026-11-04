@@ -4,10 +4,15 @@ class Player extends GameObject {
     this.name = 'Player';
     this.speed = 380;
     this.catchFlashTimer = 0;
+    this.caughtLeafSprite = null;
+    this.caughtLeafTimer = 0;
+    this.hazardCatchTimer = 0;
     this.catchBonus = 0;
     this.bobPhase = 0;
-    this.sprite = null;
+    this.spriteOpen = null;
+    this.spriteClosed = null;
     this.spriteLoaded = false;
+    this.spritesPending = 0;
     
     this.tilt = 0;
     this.targetTilt = 0;
@@ -17,61 +22,35 @@ class Player extends GameObject {
   }
 
   loadSprite() {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = 'Sprites/player_trashbin.png';
-    img.onload = () => {
-      const processedCanvas = this.processImage(img);
-      this.sprite = processedCanvas;
-      this.spriteLoaded = true;
-      console.log('✅ Player sprite loaded, white pixels removed');
-    };
-    img.onerror = () => {
-      this.sprite = Player.generatePixelSprite();
-      this.spriteLoaded = true;
-      console.warn('Using fallback player sprite');
-    };
-    if (img.complete && img.naturalWidth > 0) {
-      const processedCanvas = this.processImage(img);
-      this.sprite = processedCanvas;
-      this.spriteLoaded = true;
-    }
+    this.spritesPending = 2;
+    this.loadSpriteVariant('open', 'Sprites/leaf_catcher_open.png');
+    this.loadSpriteVariant('closed', 'Sprites/leaf_catcher_closed.png');
   }
 
-  processImage(img) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const size = 64;
-    canvas.width = size;
-    canvas.height = size;
-    ctx.drawImage(img, 0, 0, size, size);
+  loadSpriteVariant(state, src) {
+    const img = new Image();
+    img.onload = () => {
+      this[`sprite${state[0].toUpperCase()}${state.slice(1)}`] = img;
+      this.finishSpriteLoad();
+    };
+    img.onerror = () => {
+      console.error(`Failed to load player sprite: ${src}`);
+      this.finishSpriteLoad();
+    };
+    img.src = src;
+  }
 
-    const imageData = ctx.getImageData(0, 0, size, size);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-
-      // Remove any pixel that is near‑white (threshold 180)
-      if (r > 180 && g > 180 && b > 180 && a > 0) {
-        data[i + 3] = 0;
-      }
-      // Also remove pixels that are very light grey
-      if (r > 200 && g > 200 && b > 200 && a > 0) {
-        data[i + 3] = 0;
-      }
-      // Catch any pixel that's predominantly white with low saturation
-      const avg = (r + g + b) / 3;
-      if (avg > 200 && a > 0) {
-        data[i + 3] = 0;
-      }
+  finishSpriteLoad() {
+    this.spritesPending--;
+    if (this.spritesPending > 0) return;
+    this.spriteOpen = this.spriteOpen || this.spriteClosed;
+    this.spriteClosed = this.spriteClosed || this.spriteOpen;
+    if (!this.spriteOpen) {
+      this.spriteOpen = Player.generatePixelSprite();
+      this.spriteClosed = this.spriteOpen;
+      console.warn('Using fallback leaf catcher sprite');
     }
-
-    ctx.putImageData(imageData, 0, 0);
-    return canvas;
+    this.spriteLoaded = true;
   }
 
   static _playerSprite = null;
@@ -121,6 +100,26 @@ class Player extends GameObject {
     this.catchFlashTimer = 0.3;
   }
 
+  catchLeaf(sprite) {
+    this.catchFlash();
+    this.caughtLeafSprite = sprite;
+    this.caughtLeafTimer = 0.16;
+  }
+
+  catchHazard(sprite) {
+    this.catchFlashTimer = 0.5;
+    this.caughtLeafTimer = 0;
+    this.caughtLeafSprite = null;
+    this.hazardSprite = sprite || Hazard.generateSprite();
+    this.hazardCatchTimer = 0.5;
+  }
+
+  updateCatch(dt) {
+    this.catchFlashTimer = Math.max(0, this.catchFlashTimer - dt);
+    this.caughtLeafTimer = Math.max(0, this.caughtLeafTimer - dt);
+    this.hazardCatchTimer = Math.max(0, this.hazardCatchTimer - dt);
+  }
+
   getCatchBounds() {
     const padding = 15 + this.catchBonus;
     return {
@@ -150,16 +149,35 @@ class Player extends GameObject {
     ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(this.sprite, -half, -half, size, size);
+    const sprite = this.catchFlashTimer > 0 ? this.spriteClosed : this.spriteOpen;
+    ctx.drawImage(sprite, -half, -half, size, size);
+
+    if (this.caughtLeafTimer > 0 && this.caughtLeafSprite) {
+      const progress = 1 - this.caughtLeafTimer / 0.16;
+      const leafSize = size * (0.32 - progress * 0.12);
+      ctx.globalAlpha = 1 - progress * 0.45;
+      ctx.shadowBlur = 0;
+      ctx.drawImage(this.caughtLeafSprite, -leafSize / 2, -half * 0.43 - leafSize / 2, leafSize, leafSize);
+      ctx.globalAlpha = 1;
+    }
+
+    if (this.hazardCatchTimer > 0 && this.hazardSprite) {
+      ctx.globalAlpha = this.hazardCatchTimer / 0.5;
+      ctx.shadowBlur = 0;
+      ctx.drawImage(this.hazardSprite, -half * 0.33, -half * 0.9, half * 0.66, half * 0.66);
+      ctx.globalAlpha = 1;
+    }
 
     if (this.catchFlashTimer > 0) {
-      ctx.globalAlpha = this.catchFlashTimer / 0.3;
+      ctx.globalAlpha = this.hazardCatchTimer > 0
+        ? this.hazardCatchTimer / 0.5
+        : Math.min(1, this.catchFlashTimer / 0.3);
       ctx.shadowBlur = 0;
       const sparkles = [
-        [-half * 0.9, -half * 0.65, 5, '#fff0a6'],
-        [half * 0.9, -half * 0.35, 4, '#a9db75'],
-        [-half * 0.75, half * 0.55, 3, '#a9db75'],
-        [half * 0.85, half * 0.7, 5, '#fff0a6']
+        [-half * 0.9, -half * 0.65, 5, this.hazardCatchTimer > 0 ? '#ff544f' : '#fff0a6'],
+        [half * 0.9, -half * 0.35, 4, this.hazardCatchTimer > 0 ? '#ff9a62' : '#a9db75'],
+        [-half * 0.75, half * 0.55, 3, this.hazardCatchTimer > 0 ? '#ff9a62' : '#a9db75'],
+        [half * 0.85, half * 0.7, 5, this.hazardCatchTimer > 0 ? '#ff544f' : '#fff0a6']
       ];
       for (const [x, y, radius, color] of sparkles) {
         ctx.fillStyle = color;

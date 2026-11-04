@@ -54,6 +54,7 @@
       dayNight: true
     },
     powerups: { chance: 0.05, cooldown: 14, stackCap: 1.6 },
+    hazards: { chance: 0.045 },
     wind: {
       firstDelay: [18, 28],
       gap: [24, 44],
@@ -329,30 +330,37 @@
     const st = document.createElement('style');
     st.id = 'plusCSS';
     st.textContent = `
-.fx-notifications{position:absolute;top:max(64px,calc(env(safe-area-inset-top) + 58px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;width:min(86vw,340px);pointer-events:none!important;z-index:12}
-.fx-tray{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;pointer-events:none!important}
-.fx-chip{position:relative;display:flex;align-items:center;gap:.9vmin;width:100%;min-width:0;padding:.8vmin 1.2vmin 1.1vmin;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
+.fx-event-stack{position:absolute;top:max(68px,calc(env(safe-area-inset-top) + 60px));left:max(12px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:14px;width:min(76vw,310px);max-height:60vh;overflow-y:auto;scrollbar-width:none;pointer-events:none!important;z-index:12}
+.fx-event-stack::-webkit-scrollbar{display:none}
+.fx-notifications{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;gap:14px;width:100%;pointer-events:none!important}
+.fx-tray{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;pointer-events:none!important}
+.fx-chip{position:relative;display:flex;align-items:center;gap:1vmin;width:100%;min-width:0;padding:8px 12px 10px;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1.35 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
 .fx-chip canvas,.fx-chip img{flex:none;object-fit:contain;image-rendering:pixelated}
 .fx-chip b{margin-left:auto;color:var(--c);font-weight:700}
 .fx-chip.warn{animation:fxBlink .4s steps(1) infinite}
 .fx-bar{position:absolute;left:0;right:0;bottom:0;height:max(3px,.5vmin);background:rgba(255,255,255,.08)}
 .fx-bar u{display:block;height:100%;width:100%;background:var(--c);text-decoration:none}
-.fx-challenge{width:100%;padding:8px 10px 11px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
+.fx-challenge{position:relative;display:grid;gap:9px;width:100%;padding:13px 14px 15px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
 .fx-challenge[hidden]{display:none}
-.fx-challenge-top{display:flex;justify-content:space-between;gap:8px;color:#ffd51b}
-.fx-challenge-title{display:block;margin:4px 0;color:#f5e8d8}
+.fx-challenge-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#ffd51b}
+.fx-challenge-timer{min-width:54px;padding:3px 6px;color:#fff4d6;background:#35201e;border:1px solid #9b5b24;font:700 10px/1.3 'Press Start 2P',monospace;text-align:center;font-variant-numeric:tabular-nums}
+.fx-challenge-timer-track{height:4px;margin:0;overflow:hidden;background:rgba(255,255,255,.12)}
+.fx-challenge-timer-fill{display:block;width:100%;height:100%;background:#ef9a38;transform-origin:left center;transition:width 1s linear,background-color .25s}
+.fx-challenge.urgent .fx-challenge-timer{color:#ffd7cf;border-color:#d94b37;background:#451d21}
+.fx-challenge.urgent .fx-challenge-timer-fill{background:#e34f3c}
+.fx-challenge-title{display:block;margin:0;color:#f5e8d8}
 .fx-challenge-progress{display:flex;justify-content:space-between;gap:8px;color:#d4a06a}
-.fx-challenge-track{height:5px;margin-top:5px;background:rgba(255,255,255,.12)}
+.fx-challenge-track{height:5px;margin:0;background:rgba(255,255,255,.12)}
 .fx-challenge-fill{display:block;width:0;height:100%;background:#9bda62}
 @keyframes fxChipIn{from{transform:translateY(-1.5vmin) scale(.9);opacity:0}to{transform:none;opacity:1}}
 @keyframes fxBlink{50%{opacity:.35}}
 
-.fx-toasts{position:relative;inset:auto;display:flex;flex-direction:column;gap:8px;width:100%;pointer-events:none!important}
-.fx-toast{padding:1vmin 1.3vmin;background:#21131c;border:max(2px,.3vmin) solid #ffd51b;box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 #08040e;color:#f5e8d8;font:700 clamp(7px,1.05vmin,10px)/1.6 'Press Start 2P','Courier New',monospace;animation:fxToast 3.6s steps(6) both}
+.fx-toasts{position:relative;inset:auto;display:flex;flex-direction:column;gap:12px;width:100%;pointer-events:none!important}
+.fx-toast{display:grid;gap:6px;padding:11px 13px;background:#21131c;border:max(2px,.3vmin) solid #ffd51b;box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 #08040e;color:#f5e8d8;font:700 clamp(7px,1.05vmin,10px)/1.6 'Press Start 2P','Courier New',monospace;animation:fxToast 3.6s steps(6) both}
 .fx-toast strong{display:block;color:#ffd51b}
 .fx-toast small{display:block;color:#d4a06a;font-size:inherit}
 .fx-toast em{font-style:normal;color:#9bda62}
-@keyframes fxToast{0%{transform:translateX(115%)}8%{transform:none}88%{transform:none;opacity:1}100%{transform:translateX(115%);opacity:0}}
+@keyframes fxToast{0%{transform:translateY(-6px);opacity:0}8%{transform:none;opacity:1}88%{transform:none;opacity:1}100%{transform:translateY(-4px);opacity:0}}
 
 .fx-pausebtn{position:absolute;top:max(1.6vmin,env(safe-area-inset-top));right:max(1.6vmin,env(safe-area-inset-right));width:clamp(34px,6vmin,52px);height:clamp(34px,6vmin,52px);padding:0;background:#3d2817;border:max(2px,.35vmin) solid #f5c842;box-shadow:max(2px,.35vmin) max(2px,.35vmin) 0 #0a0503;cursor:pointer;z-index:12;-webkit-tap-highlight-color:transparent}
 .fx-pausebtn::before,.fx-pausebtn::after{content:'';position:absolute;top:26%;bottom:26%;width:16%;background:#f5e8d8}
@@ -472,11 +480,11 @@
       const layer = document.getElementById('ui-layer');
       if (!hud || !layer) throw new Error('#hud / #ui-layer missing');
 
+      this.eventStack = el('div', 'fx-event-stack');
       this.tray = el('div', 'fx-tray');
       this.toasts = el('div', 'fx-toasts');
       this.notifications = el('div', 'fx-notifications');
       this.notifications.append(this.tray, this.toasts);
-      hud.appendChild(this.notifications);
 
       this.challengeCard = el('section', 'fx-challenge');
       this.challengeCard.hidden = true;
@@ -484,7 +492,14 @@
       const challengeLabel = el('span');
       challengeLabel.textContent = 'TIMED CHALLENGE';
       this.challengeTimer = el('span');
+      this.challengeTimer.className = 'fx-challenge-timer';
       challengeHeader.append(challengeLabel, this.challengeTimer);
+      this.challengeTimerTrack = el('div', 'fx-challenge-timer-track');
+      this.challengeTimerTrack.setAttribute('role', 'progressbar');
+      this.challengeTimerTrack.setAttribute('aria-label', 'Challenge time remaining');
+      this.challengeTimerTrack.setAttribute('aria-valuemin', '0');
+      this.challengeTimerFill = el('u', 'fx-challenge-timer-fill');
+      this.challengeTimerTrack.appendChild(this.challengeTimerFill);
       this.challengeTitle = el('strong', 'fx-challenge-title');
       const challengeProgress = el('div', 'fx-challenge-progress');
       this.challengeProgressText = el('span');
@@ -493,8 +508,9 @@
       const challengeTrack = el('div', 'fx-challenge-track');
       this.challengeFill = el('u', 'fx-challenge-fill');
       challengeTrack.appendChild(this.challengeFill);
-      this.challengeCard.append(challengeHeader, this.challengeTitle, challengeProgress, challengeTrack);
-      this.tray.appendChild(this.challengeCard);
+      this.challengeCard.append(challengeHeader, this.challengeTimerTrack, this.challengeTitle, challengeProgress, challengeTrack);
+      this.eventStack.append(this.challengeCard, this.notifications);
+      hud.appendChild(this.eventStack);
 
       this.pauseBtn = el('button', 'fx-pausebtn');
       this.pauseBtn.type = 'button';
@@ -797,13 +813,14 @@
        Shop purchases rebuild shopBonuses from scratch, so we never fight them. */
     applyModifiers() {
       const g = this.g, b = g.shopBonuses, p = g.player, a = this.active;
-      const snap = { fall: b.fallSpeed, mag: b.magnet, drop: b.dropRate, val: b.leafValue, cb: p ? p.catchBonus : 0 };
+      const snap = { fall: b.fallSpeed, mag: b.magnet, magRange: b.magnetRange, drop: b.dropRate, val: b.leafValue, cb: p ? p.catchBonus : 0 };
       if (a.warp) b.fallSpeed *= 0.45;
-      if (a.magnet) { b.magnet += 1.1; if (p) p.catchBonus += 22; }
+      if (a.magnet) { b.magnet += 1.1; b.magnetRange = Math.max(b.magnetRange, 480); if (p) p.catchBonus += 22; }
       if (a.midas) b.leafValue *= 2.5;
       if (a.storm) b.dropRate *= 2.6;
       return () => {
-        b.fallSpeed = snap.fall; b.magnet = snap.mag; b.dropRate = snap.drop; b.leafValue = snap.val;
+        b.fallSpeed = snap.fall; b.magnet = snap.mag; b.magnetRange = snap.magRange;
+        b.dropRate = snap.drop; b.leafValue = snap.val;
         if (p) p.catchBonus = snap.cb;
       };
     }
@@ -832,6 +849,15 @@
     /* Returns true when it spawned something instead of a regular leaf. */
     trySpawnSpecial() {
       const g = this.g, F = CONFIG.features, P = CONFIG.powerups;
+      if (Math.random() < CONFIG.hazards.chance && !g.leaves.some((l) => l.isHazard)) {
+        const { w } = g.getViewSize();
+        const scale = g.scale || 1;
+        const size = Math.max(28 * scale, 32 * scale);
+        const hazard = new Hazard(Math.random() * (w - size), -size, { size, scale });
+        g.leaves.push(hazard);
+        g.entities.push(hazard);
+        return true;
+      }
       if (F.powerups && this.cooldown <= 0 && Math.random() < P.chance && !g.leaves.some((l) => l.isPowerUp)) {
         this.spawnOrb(this.pickPower());
         this.cooldown = 3;
@@ -915,19 +941,15 @@
       this.challenge = {
         ...selected,
         description,
+        timeLimit,
         remaining: timeLimit,
         reward: Math.round(300 + difficulty * 600),
         startValue: this.stats[selected.metric] || 0,
         progress: 0
       };
+      this.challengeDisplayedSecond = null;
       this.challengeCard.hidden = false;
       this.updateChallengeUI();
-      this.toast({
-        name: selected.name,
-        desc: description + ' before time runs out!',
-        reward: 0,
-        timeLimit
-      }, 'NEW CHALLENGE');
     }
     updateChallengeProgress() {
       const challenge = this.challenge;
@@ -943,9 +965,17 @@
       const challenge = this.challenge;
       if (!challenge) return;
       const remaining = Math.max(0, Math.ceil(challenge.remaining));
-      const minutes = Math.floor(remaining / 60);
-      const seconds = String(remaining % 60).padStart(2, '0');
-      this.challengeTimer.textContent = `${minutes}:${seconds}`;
+      if (this.challengeDisplayedSecond !== remaining) {
+        this.challengeDisplayedSecond = remaining;
+        const minutes = Math.floor(remaining / 60);
+        const seconds = String(remaining % 60).padStart(2, '0');
+        const timePercent = clamp((remaining / challenge.timeLimit) * 100, 0, 100);
+        this.challengeTimer.textContent = `${minutes}:${seconds}`;
+        this.challengeTimerFill.style.width = `${timePercent}%`;
+        this.challengeTimerTrack.setAttribute('aria-valuemax', String(challenge.timeLimit));
+        this.challengeTimerTrack.setAttribute('aria-valuenow', String(remaining));
+        this.challengeCard.classList.toggle('urgent', timePercent <= 20);
+      }
       this.challengeTitle.textContent = challenge.description;
       this.challengeProgressText.textContent = `${Math.min(challenge.progress, challenge.target)} / ${challenge.target} ${challenge.unit}`;
       this.challengeFill.style.width = `${Math.min(100, (challenge.progress / challenge.target) * 100)}%`;
@@ -1104,9 +1134,12 @@
       this.sky = s;
       if (this.phaseName !== s.name) {
         if (this.phaseName !== null) {
-          const [text, color] = PHASE_TEXT[s.name];
-          const { w, h } = this.g.getViewSize();
-          this.g.showFloatText(text, w / 2, h * 0.24, color, 16);
+          const [text] = PHASE_TEXT[s.name];
+          this.toast({
+            name: text,
+            desc: 'The leaves are changing with the light.',
+            reward: 0
+          }, 'WORLD EVENT');
         }
         this.phaseName = s.name;
       }
