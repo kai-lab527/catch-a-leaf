@@ -390,14 +390,20 @@
 .fx-pausebtn::after{right:30%}
 .fx-pausebtn:hover,.fx-pausebtn:focus-visible{filter:brightness(1.2);outline:0}
 .fx-pausebtn:active{transform:translate(2px,2px)}
+@media (max-width:700px){
+  .fx-pausebtn{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px;background:rgba(61,40,23,.96);border:3px solid #ffd51b;z-index:30}
+  .fx-pausebtn::before,.fx-pausebtn::after{width:18%;background:#fff4d6}
+  .fx-pausebtn::before{left:25%}
+  .fx-pausebtn::after{right:25%}
+}
 
-.fx-movebtn{display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom) + 13vmin);width:clamp(48px,13vmin,68px);height:clamp(48px,13vmin,68px);padding:0;border:2px solid rgba(255,255,255,.28);border-radius:50%;background:rgba(255,255,255,.14);color:rgba(255,255,255,.62);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;z-index:11}
+.fx-movebtn{display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom) + 13vmin);width:clamp(48px,13vmin,68px);height:clamp(48px,13vmin,68px);padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.58);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;z-index:11}
 .fx-movebtn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:translate(-50%,-50%)}
 .fx-movebtn.left{left:max(4vw,env(safe-area-inset-left))}
 .fx-movebtn.left::before{border-right:14px solid currentColor}
 .fx-movebtn.right{right:max(4vw,env(safe-area-inset-right))}
 .fx-movebtn.right::before{border-left:14px solid currentColor}
-.fx-movebtn:active,.fx-movebtn.is-pressed{background:rgba(255,255,255,.27);color:rgba(255,255,255,.9)}
+.fx-movebtn:active,.fx-movebtn.is-pressed{background:transparent;color:rgba(255,255,255,.95)}
 @media (max-width:700px){.fx-movebtn{display:block}}
 
 .fx-pause{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:2vmin;background:rgba(10,5,20,.84)}

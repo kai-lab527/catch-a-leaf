@@ -161,17 +161,26 @@ class Player extends GameObject {
     if (this.catchFlashTimer > 0) {
       ctx.globalAlpha = this.catchFlashTimer / 0.3;
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, size / 1.5, 0, Math.PI * 2);
-      ctx.stroke();
-      
-      ctx.strokeStyle = '#ff6b1a';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, size / 1.5 + 8, 0, Math.PI * 2);
-      ctx.stroke();
+      const sparkles = [
+        [-half * 0.9, -half * 0.65, 5, '#fff0a6'],
+        [half * 0.9, -half * 0.35, 4, '#a9db75'],
+        [-half * 0.75, half * 0.55, 3, '#a9db75'],
+        [half * 0.85, half * 0.7, 5, '#fff0a6']
+      ];
+      for (const [x, y, radius, color] of sparkles) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y - radius);
+        ctx.lineTo(x + radius * 0.45, y - radius * 0.45);
+        ctx.lineTo(x + radius, y);
+        ctx.lineTo(x + radius * 0.45, y + radius * 0.45);
+        ctx.lineTo(x, y + radius);
+        ctx.lineTo(x - radius * 0.45, y + radius * 0.45);
+        ctx.lineTo(x - radius, y);
+        ctx.lineTo(x - radius * 0.45, y - radius * 0.45);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     ctx.restore();

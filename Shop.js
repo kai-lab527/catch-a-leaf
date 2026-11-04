@@ -22,7 +22,9 @@ class Shop {
       { id: 'grumpy', code: 'GC', icon: 4, name: 'Grumpy Cloud', effect: '+30% leaf drops', copy: 'Summon a cloud with a very generous opinion.', price: 450, max: 5, color: '#a4e36e' },
       { id: 'slowpoke', code: 'SW', icon: 5, name: 'Slowpoke Feather', effect: '-8% fall speed', copy: 'Give yourself an extra blink to catch it.', price: 650, max: 5, color: '#b3e553' },
       { id: 'blueberry', code: 'BL', icon: 6, name: 'Blueberry Luck', effect: 'More blue leaves', copy: 'A suspiciously blue improvement.', price: 800, max: 5, color: '#22c9f2' },
-      { id: 'spicy', code: 'SS', icon: 7, name: 'Spicy Streak', effect: '+25% combo bonus', copy: 'Turn a good streak into a spicy streak.', price: 700, max: 5, color: '#ff920f' }
+      { id: 'spicy', code: 'SS', icon: 7, name: 'Spicy Streak', effect: '+25% combo bonus', copy: 'Turn a good streak into a spicy streak.', price: 700, max: 5, color: '#ff920f' },
+      { id: 'comboClock', code: 'CC', icon: 8, name: 'Combo Clock', effect: '+0.4s combo time', copy: 'Gives your streak more time before it fades.', price: 750, max: 5, color: '#ffca55' },
+      { id: 'leafRadar', code: 'LR', icon: 9, name: 'Leaf Radar', effect: '+100px magnet range', copy: 'Adds a gentle magnet and extends its reach. Stacks with Sticky Fingers.', price: 1000, max: 5, color: '#67d6d2' }
     ];
     this.varieties = [
       { id: 'fern', name: 'Fern Frond', effect: 'Worth 6¢ per catch', copy: 'Add fern fronds to the falling-leaf pool.', price: 180, sprite: 'fern_frond.png', color: '#83b84a' },

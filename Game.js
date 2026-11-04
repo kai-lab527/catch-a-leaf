@@ -22,7 +22,7 @@ class Game {
 
     this.shopLevels = {};
     this.shopBonuses = {
-      leafValue: 1, moveSpeed: 1, catchArea: 0, magnet: 0,
+      leafValue: 1, moveSpeed: 1, catchArea: 0, magnet: 0, magnetRange: 0,
       dropRate: 1, fallSpeed: 1, blueChance: 0.008, comboBonus: 1, leafTypes: []
     };
 
@@ -244,13 +244,17 @@ class Game {
       leafValue: 1 + (levels.piggy || 0) * 0.5,
       moveSpeed: 1 + (levels.sneakers || 0) * 0.15,
       catchArea: (levels.bucket || 0) * 5,
-      magnet: (levels.sticky || 0) * 0.24,
+      magnet: (levels.sticky || 0) * 0.24 + (levels.leafRadar || 0) * 0.08,
+      magnetRange: (levels.sticky || 0) + (levels.leafRadar || 0) > 0
+        ? 180 + (levels.sticky || 0) * 40 + (levels.leafRadar || 0) * 100
+        : 0,
       dropRate: 1 + (levels.grumpy || 0) * 0.3,
       fallSpeed: Math.max(0.6, 1 - (levels.slowpoke || 0) * 0.08),
       blueChance: 0.008 * (1 + (levels.blueberry || 0)),
       comboBonus: 1 + (levels.spicy || 0) * 0.25,
       leafTypes: Array.isArray(levels.leafTypes) ? levels.leafTypes : []
     };
+    this.comboMax = 2 + (levels.comboClock || 0) * 0.4;
     if (this.player) this.player.catchBonus = this.shopBonuses.catchArea;
   }
 
@@ -462,10 +466,13 @@ class Game {
       }
 
       leaf.update(dt * this.shopBonuses.fallSpeed, h, 1);
-      if (this.shopBonuses.magnet > 0) {
+      if (this.shopBonuses.magnet > 0 && this.shopBonuses.magnetRange > 0) {
         const playerCenter = this.player.x + this.player.width / 2;
         const leafCenter = leaf.x + leaf.width / 2;
-        leaf.x += Math.max(-180, Math.min(180, playerCenter - leafCenter)) * this.shopBonuses.magnet * dt;
+        const distance = playerCenter - leafCenter;
+        if (Math.abs(distance) <= this.shopBonuses.magnetRange) {
+          leaf.x += Math.max(-180, Math.min(180, distance)) * this.shopBonuses.magnet * dt;
+        }
       }
       const b = leaf.getBounds();
       if (b.x < catchBounds.x + catchBounds.width && b.x + b.width > catchBounds.x &&

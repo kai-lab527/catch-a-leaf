@@ -10,6 +10,10 @@
     blueberry: 6,
     spicy: 7
   };
+  const customIcons = {
+    comboClock: 'Sprites/combo_clock_icon.svg',
+    leafRadar: 'Sprites/leaf_radar_icon.svg'
+  };
 
   function applyIcons() {
     const shop = window.shop;
@@ -18,17 +22,39 @@
     document.querySelectorAll('.shop-card').forEach((card) => {
       const icon = card.querySelector('.shop-card-icon');
       const index = iconIndex[card.dataset.shopItem];
-      if (!icon || index === undefined) return;
+      const customIcon = customIcons[card.dataset.shopItem];
+      if (!icon) return;
       icon.textContent = '';
       icon.setAttribute('aria-hidden', 'true');
-      card.style.setProperty('--icon-position', `${(index / 7) * 100}%`);
+      if (customIcon) {
+        icon.style.backgroundImage = `url('${customIcon}')`;
+        icon.style.backgroundSize = 'contain';
+        icon.style.backgroundPosition = 'center';
+      } else if (index !== undefined) {
+        icon.style.removeProperty('background-image');
+        icon.style.removeProperty('background-size');
+        icon.style.removeProperty('background-position');
+        card.style.setProperty('--icon-position', `${(index / 7) * 100}%`);
+      }
     });
 
     const detail = document.getElementById('shopDetailArt');
     const selected = shop.item ? shop.item() : null;
-    if (detail && selected && iconIndex[selected.id] !== undefined) {
+    if (detail && selected && shop.category === 'upgrades' && customIcons[selected.id]) {
+      detail.style.backgroundImage = `url('${customIcons[selected.id]}')`;
+      detail.style.backgroundSize = 'contain';
+      detail.style.backgroundPosition = 'center';
+      detail.textContent = '';
+    } else if (detail && selected && shop.category === 'upgrades' && iconIndex[selected.id] !== undefined) {
+      detail.style.removeProperty('background-image');
+      detail.style.removeProperty('background-size');
+      detail.style.removeProperty('background-position');
       detail.textContent = '';
       detail.style.setProperty('--icon-position', `${(iconIndex[selected.id] / 7) * 100}%`);
+    } else if (detail && shop.category === 'leaves') {
+      detail.style.removeProperty('background-image');
+      detail.style.removeProperty('background-size');
+      detail.style.removeProperty('background-position');
     }
     return true;
   }

@@ -330,14 +330,24 @@
       g.shadowBlur = bin.flash > 0 ? 30 : 15;
       g.shadowColor = bin.flash > 0 ? '#ffd700' : 'rgba(255, 200, 100, 0.3)';
       g.drawImage(bin.sprite, -s / 2, -s / 2, s, s);
-      if (bin.flash > 0) {                  // same double ring Player.js uses
-        const k = bin.flash / 0.3, grow = (1 - k) * s * 0.2;
+      if (bin.flash > 0) {
+        const k = bin.flash / 0.3, spread = (1 - k) * s * 0.18;
         g.globalAlpha = fade * k;
-        g.shadowBlur = 0; g.lineWidth = 2;
-        g.strokeStyle = '#ffd700';
-        g.beginPath(); g.arc(0, 0, s / 1.5 + grow, 0, Math.PI * 2); g.stroke();
-        g.strokeStyle = '#ff6b1a';
-        g.beginPath(); g.arc(0, 0, s / 1.5 + grow + 8, 0, Math.PI * 2); g.stroke();
+        g.shadowBlur = 0;
+        const glints = [
+          [-0.62, -0.5, 5, '#fff0a6'],
+          [0.62, -0.42, 4, '#a9db75'],
+          [-0.72, 0.28, 4, '#a9db75'],
+          [0.68, 0.48, 5, '#fff0a6']
+        ];
+        for (const [x, y, radius, color] of glints) {
+          g.save();
+          g.translate(x * s + Math.sign(x) * spread, y * s + Math.sign(y) * spread);
+          g.rotate((1 - k) * x * 0.8);
+          g.fillStyle = color;
+          star(radius * Math.max(0.7, s / 72));
+          g.restore();
+        }
       }
       g.restore();
     }
