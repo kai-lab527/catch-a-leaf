@@ -286,6 +286,7 @@ html, body {
   box-shadow: 2px 2px 0 rgba(10, 5, 3, 0.5);
   image-rendering: pixelated;
 }
+#comboBar:not(.active) { display: none; }
 #comboBar.pop { animation: comboPop 0.22s steps(4); }
 
 @keyframes comboPop {
@@ -401,7 +402,7 @@ html, body {
 }
 
 @media (max-width: 600px) {
-  .hud-pos-topleft { top: 1.2vmin; left: 1.2vmin; }
+  .hud-pos-topleft { top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
   .hud-bottom-stats { gap: 1.5vmin; bottom: 1vmin; padding: 0 1vmin; }
   .hud-stat { padding: 0.5vmin 1vmin; min-height: 3.6vmin; }
   .hud-icon { font-size: 1.8vmin; width: 2.2vmin; height: 2.2vmin; }

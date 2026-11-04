@@ -576,7 +576,7 @@ class Game {
         this.ctx.translate(fs.x, fs.y); this.ctx.scale(s, s);
         this.ctx.font = `bold ${16 * this.scale}px "Press Start 2P", monospace`;
         this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle';
-        this.ctx.shadowBlur = 12 * this.scale; this.ctx.shadowColor = fs.color;
+        this.ctx.shadowBlur = 12 * this.scale * (typeof GameObject !== 'undefined' ? GameObject.glow : 1); this.ctx.shadowColor = fs.color;
         this.ctx.fillStyle = fs.color; this.ctx.fillText(fs.text, 0, 0);
         this.ctx.shadowBlur = 0; this.ctx.strokeStyle = 'rgba(0,0,0,0.8)'; this.ctx.lineWidth = 3 * this.scale;
         this.ctx.strokeText(fs.text, 0, 0); this.ctx.fillStyle = fs.color; this.ctx.fillText(fs.text, 0, 0);

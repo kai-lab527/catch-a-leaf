@@ -153,16 +153,17 @@ class Leaf extends GameObject {
     ctx.translate(cx, cy);
     ctx.rotate(this.rot);
 
+    const glowScale = typeof GameObject !== 'undefined' ? GameObject.glow : 1;
     if (this.golden) {
       const glow = 10 + Math.sin(this.pulse) * 8;
-      ctx.shadowBlur = glow;
+      ctx.shadowBlur = glow * glowScale;
       ctx.shadowColor = '#ffd700';
     } else if (this.blue) {
       const glow = 10 + Math.sin(this.pulse) * 8;
-      ctx.shadowBlur = glow;
+      ctx.shadowBlur = glow * glowScale;
       ctx.shadowColor = '#29b6f6';
     } else {
-      ctx.shadowBlur = 4;
+      ctx.shadowBlur = 4 * glowScale;
       ctx.shadowColor = '#ffb347';
     }
 

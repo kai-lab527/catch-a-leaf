@@ -146,7 +146,7 @@ class Player extends GameObject {
     const half = size / 2;
 
     // Draw the processed sprite – white pixels are now transparent
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 15 * (typeof GameObject !== 'undefined' ? GameObject.glow : 1);
     ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
     ctx.imageSmoothingEnabled = false;

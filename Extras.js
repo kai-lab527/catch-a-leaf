@@ -372,7 +372,7 @@
   .fx-pausebtn::before,.fx-pausebtn::after{width:18%;background:#fff4d6}
   .fx-pausebtn::before{left:25%}
   .fx-pausebtn::after{right:25%}
-  .fx-rebirthbtn{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 62px);width:50px;height:50px}
+  .fx-rebirthbtn{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 76px);width:50px;height:50px}
 }
 
 .fx-movebtn{display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom) + 13vmin);width:clamp(48px,13vmin,68px);height:clamp(48px,13vmin,68px);padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.58);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;z-index:11}
@@ -393,8 +393,12 @@
 .fx-grid b{color:#f5e8d8;font-weight:600}
 .fx-vol{display:flex;align-items:center;gap:12px;font:700 clamp(8px,1.2vmin,11px) 'Press Start 2P',monospace;color:#d4a06a}
 .fx-vol input{flex:1;accent-color:#ef701a;min-height:28px}
-.fx-quality{display:flex;align-items:center;gap:10px;font:700 clamp(8px,1.2vmin,11px) 'Press Start 2P',monospace;color:#d4a06a}
-.fx-quality select{flex:1;min-height:32px;padding:6px 8px;background:#21131c;border:2px solid #744018;color:#f5e8d8;font:inherit;text-transform:uppercase;outline:0}
+.fx-quality{display:grid;gap:8px;font:700 clamp(8px,1.2vmin,11px) 'Press Start 2P',monospace;color:#d4a06a}
+.fx-quality-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fx-quality-option{display:grid;gap:5px;min-height:48px;padding:8px 5px;color:#d4a06a;background:#21131c;border:2px solid #744018;font:700 clamp(7px,1vmin,9px)/1.2 'Press Start 2P',monospace;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fx-quality-option small{color:#a9907a;font:600 clamp(8px,1.3vmin,11px)/1.2 'Pixelify Sans',sans-serif}
+.fx-quality-option[aria-pressed="true"]{color:#ffd51b;background:#35201e;border-color:#ffd51b;box-shadow:inset 0 -3px 0 #ef701a}
+.fx-quality-option:focus-visible{outline:2px dashed #ffd51b;outline-offset:2px}
 .fx-controls{display:grid;gap:8px;padding:10px 12px;background:#21131c;border:2px solid #4d2a14}
 .fx-controls h3{margin:0 0 2px;color:#ffd51b;font:700 clamp(8px,1.2vmin,11px) 'Press Start 2P',monospace}
 .fx-control-row{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#d4a06a;font-size:clamp(11px,1.5vmin,14px)}
@@ -538,13 +542,14 @@
           <h2>PAUSED</h2>
           <div class="fx-grid" data-role="stats"></div>
           <label class="fx-vol"><span>VOL</span><input type="range" min="0" max="100" step="1" data-role="vol" aria-label="Volume"></label>
-          <label class="fx-quality"><span>QUALITY</span>
-            <select data-role="quality" aria-label="Graphics quality">
-              <option value="0">LOW</option>
-              <option value="1">MEDIUM</option>
-              <option value="2">HIGH</option>
-            </select>
-          </label>
+          <div class="fx-quality">
+            <span>GRAPHICS QUALITY</span>
+            <div class="fx-quality-options" role="group" aria-label="Graphics quality">
+              <button type="button" class="fx-quality-option" data-role="quality" data-quality="0" aria-pressed="false">LOW<small>FASTEST</small></button>
+              <button type="button" class="fx-quality-option" data-role="quality" data-quality="1" aria-pressed="false">MEDIUM<small>BALANCED</small></button>
+              <button type="button" class="fx-quality-option" data-role="quality" data-quality="2" aria-pressed="false">HIGH<small>BEST LOOKS</small></button>
+            </div>
+          </div>
           <section class="fx-controls" aria-labelledby="fxControlsTitle">
             <h3 id="fxControlsTitle">CONTROLS</h3>
             <div class="fx-control-row"><span>Move</span><b>A / D or ← / →</b></div>
@@ -559,7 +564,10 @@
       layer.appendChild(this.panel);
       const q = (r) => this.panel.querySelector('[data-role="' + r + '"]');
       this.ui = {
-        stats: q('stats'), vol: q('vol'), quality: q('quality'), resume: q('resume')
+        stats: q('stats'),
+        vol: q('vol'),
+        qualityButtons: Array.from(this.panel.querySelectorAll('[data-role="quality"]')),
+        resume: q('resume')
       };
     }
 
@@ -572,7 +580,9 @@
         if (g.audio) g.audio.setVolume(Number(this.ui.vol.value) / 100);
         this.dirty = true;
       });
-      this.ui.quality.addEventListener('change', () => this.setQuality(Number(this.ui.quality.value)));
+      this.ui.qualityButtons.forEach((button) => {
+        button.addEventListener('click', () => this.setQuality(Number(button.dataset.quality)));
+      });
       this.ui.vol.addEventListener('change', () => this.save());
 
       window.addEventListener('keydown', (e) => {
@@ -658,18 +668,26 @@
       if (g.audio) g.audio.playMusic();
     }
     setQuality(value) {
-      const level = clamp(Math.round(Number(value) || 1), 0, 2);
+      const requested = Number(value);
+      const level = clamp(Number.isFinite(requested) ? Math.round(requested) : 1, 0, 2);
       this.quality = level;
       document.documentElement.dataset.quality = ['low', 'medium', 'high'][level];
       if (this.g) this.g.renderQuality = level;
-      if (this.ui && this.ui.quality) this.ui.quality.value = String(level);
+      if (typeof GameObject !== 'undefined') GameObject.glow = level / 2;
+      this.syncQualityButtons();
       this.dirty = true;
+    }
+    syncQualityButtons() {
+      if (!this.ui || !this.ui.qualityButtons) return;
+      this.ui.qualityButtons.forEach((button) => {
+        button.setAttribute('aria-pressed', String(Number(button.dataset.quality) === this.quality));
+      });
     }
     refreshPanel() {
       const s = this.stats, g = this.g;
       this.ui.stats.replaceChildren();
       this.ui.vol.value = Math.round((g.audio ? g.audio.volume : 0.3) * 100);
-      this.ui.quality.value = String(this.quality);
+      this.syncQualityButtons();
     }
 
     /* ---------- save / restore ---------- */
@@ -1117,7 +1135,8 @@
         w.env = Math.sin(Math.PI * p);
         w.cur = w.dir * w.power * w.env;
         w.acc += dt * 30 * w.env;
-        while (w.acc >= 1 && this.streaks.length < 48) {
+        const streakLimit = [12, 30, 48][this.quality];
+        while (w.acc >= 1 && this.streaks.length < streakLimit) {
           w.acc -= 1;
           this.streaks.push({
             x: w.dir > 0 ? -rand(20, 120) : vw + rand(20, 120),
@@ -1184,10 +1203,12 @@
         ctx.fillRect(0, 0, w, h);
         ctx.restore();
       }
-      if (F.dayNight && s.night > 0.3) {
+      if (F.dayNight && s.night > 0.3 && this.quality > 0) {
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        for (const f of FIREFLIES) {
+        const fireflyCount = this.quality === 1 ? FIREFLIES.length / 2 : FIREFLIES.length;
+        for (let i = 0; i < fireflyCount; i++) {
+          const f = FIREFLIES[i];
           const x = f.bx * w + Math.sin(this.clock * f.sp + f.ph) * f.amp * sc;
           const y = f.by * h + Math.cos(this.clock * f.sp * 1.3 + f.ph) * f.amp * 0.6 * sc;
           const a = (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(this.clock * 2.1 + f.ph * 3))) * s.night;

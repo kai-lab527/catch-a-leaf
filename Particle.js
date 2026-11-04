@@ -35,8 +35,8 @@ class Particle extends GameObject {
     ctx.rotate(this.rot);
     ctx.fillStyle = this.color;
     // Per-particle shadowBlur murders mobile GPUs; only pay for it at full quality.
-    if (GameObject.glow >= 1) {
-      ctx.shadowBlur = 8;
+    if (GameObject.glow > 0) {
+      ctx.shadowBlur = 8 * GameObject.glow;
       ctx.shadowColor = this.color;
     }
     if (this.shape === 'star') {
