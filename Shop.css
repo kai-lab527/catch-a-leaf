@@ -217,6 +217,12 @@
     overscroll-behavior: contain;
     gap: 10px;
   }
+  .shop-grid.leaf-category { grid-auto-rows: minmax(112px, auto); }
+  .shop-grid.leaf-category .shop-card { justify-content: center; padding: 8px; gap: 4px; }
+  .shop-grid.leaf-category .leaf-variety-icon { width: 36px; min-width: 36px; height: 36px; min-height: 36px; }
+  .shop-grid.leaf-category .shop-card strong { font-size: clamp(10px, 2.7vw, 12px); }
+  .shop-grid.leaf-category .shop-card small { font-size: clamp(9px, 2.4vw, 11px); }
+  .shop-grid.leaf-category .shop-card-meta { padding-top: 2px; }
   .shop-card { min-height: 0; padding: 12px 10px; gap: 7px; }
   .shop-card strong { font-size: clamp(10px, 3vw, 13px); }
   .shop-card small { font-size: clamp(9px, 2.7vw, 12px); }

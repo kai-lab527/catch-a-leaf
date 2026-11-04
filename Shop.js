@@ -56,6 +56,7 @@ class Shop {
 
   setCategory(category) {
     this.category = category;
+    this.grid.classList.toggle('leaf-category', category === 'leaves');
     this.upgradesTab.classList.toggle('is-active', category === 'upgrades');
     this.leavesTab.classList.toggle('is-active', category === 'leaves');
     this.upgradesTab.setAttribute('aria-selected', String(category === 'upgrades'));
