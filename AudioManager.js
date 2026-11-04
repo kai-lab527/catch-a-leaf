@@ -12,6 +12,9 @@ class AudioManager {
     this.tapSound = new Audio('sounds/tap_notif.mp3');
     this.tapSound.preload = 'auto';
     this.tapSound.volume = this.volume;
+    this.introSound = new Audio('sounds/startup.mp3');
+    this.introSound.preload = 'auto';
+    this.introSound.volume = this.volume;
 
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -145,6 +148,11 @@ class AudioManager {
     this.tapSound.play().catch(err => console.warn('Menu tap sound failed', err));
   }
 
+  playIntro() {
+    this.introSound.currentTime = 0;
+    this.introSound.play().catch(err => console.warn('Intro sound failed', err));
+  }
+
   playMusic() {
     this.forceResume();
     if (this.ctx && this.ready && this.sounds.music) {
@@ -224,5 +232,6 @@ class AudioManager {
     if (this.sounds.collectHTML5) this.sounds.collectHTML5.volume = this.volume;
     if (this.sounds.comboHTML5) this.sounds.comboHTML5.volume = this.volume * 0.4;
     this.tapSound.volume = this.volume;
+    this.introSound.volume = this.volume;
   }
 }

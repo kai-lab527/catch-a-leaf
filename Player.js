@@ -149,12 +149,6 @@ class Player extends GameObject {
     ctx.shadowBlur = 15;
     ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
-    if (this.catchFlashTimer > 0) {
-      ctx.shadowBlur = 30;
-      ctx.shadowColor = '#ffd700';
-      ctx.globalAlpha = 0.5 + Math.sin(this.catchFlashTimer * 20) * 0.3;
-    }
-
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(this.sprite, -half, -half, size, size);
 

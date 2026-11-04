@@ -43,6 +43,7 @@
     { id: 'music',   kind: 'audio', group: SND, w: 6, src: 'sounds/music_loop_catch_a_leaf.mp3' },
     { id: 'collect', kind: 'audio', group: SND, w: 1, src: 'sounds/collect_catch_a_leaf.mp3' },
     { id: 'combo',   kind: 'audio', group: SND, w: 1, src: 'sounds/combo_catch_a_leaf.mp3' },
+    { id: 'startup', kind: 'audio', group: SND, w: 1, src: 'sounds/startup.mp3' },
     { id: 'game',    kind: 'game',  group: 'Starting game', w: 2, timeout: 6000 }
   ].map((a) => Object.assign({ frac: 0, done: false, ok: false, timeout: 15000 }, a));
 

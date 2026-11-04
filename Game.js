@@ -189,7 +189,7 @@ class Game {
       e.stopPropagation();
       if (this.state !== 'start') return;
       this.audio.forceResume();
-      this.audio.playTap();
+      this.audio.playIntro();
       this.beginGame(this.getPreferredDevice());
     });
     quitBtn?.addEventListener('click', (e) => {

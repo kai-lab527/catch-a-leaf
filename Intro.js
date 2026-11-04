@@ -55,6 +55,7 @@
       event.stopPropagation();
       window.game?.audio?.forceResume();
       if (window.game?.beginGame && typeof window.game.getPreferredDevice !== 'function') {
+        window.game.audio?.playIntro();
         window.game.beginGame(preferredDevice());
       }
     });
@@ -74,4 +75,3 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
-

@@ -86,6 +86,9 @@ class Shop {
 
   item(id = this.selected) { return this.items.find((item) => item.id === id) || this.items[7]; }
   variety(id = this.selectedLeaf) { return this.varieties.find((item) => item.id === id) || this.varieties[0]; }
+  upgradePrice(item, level = this.levels[item.id] || 0) {
+    return Math.round(item.price * Math.pow(1.5, level));
+  }
 
   render() {
     this.grid.innerHTML = this.category === 'leaves'
@@ -101,6 +104,7 @@ class Shop {
       }).join('')
       : this.items.map((item) => {
         const level = this.levels[item.id] || 0;
+        const price = this.upgradePrice(item, level);
         const selected = item.id === this.selected ? ' selected' : '';
         const maxed = level >= item.max ? ' maxed' : '';
         const iconPosition = (item.icon / 7) * 100;
@@ -108,7 +112,7 @@ class Shop {
           <span class="shop-card-icon" aria-hidden="true"></span>
           <strong>${item.name}</strong>
           <small>${item.effect}</small>
-          <span class="shop-card-meta"><b>¢ ${item.price}</b><em>LV ${level}/${item.max}</em></span>
+          <span class="shop-card-meta"><b>¢ ${price}</b><em>LV ${level}/${item.max}</em></span>
         </button>`;
       }).join('');
     this.grid.querySelectorAll('.shop-card').forEach((card) => {
@@ -128,6 +132,7 @@ class Shop {
     }
     const item = this.item();
     const level = this.levels[item.id] || 0;
+    const price = this.upgradePrice(item, level);
     const money = window.game ? window.game.money : 0;
     const detailArt = document.getElementById('shopDetailArt');
     detailArt.textContent = '';
@@ -138,12 +143,12 @@ class Shop {
     document.getElementById('shopDetailName').textContent = item.name;
     document.getElementById('shopDetailEffect').textContent = item.effect;
     document.getElementById('shopDetailCopy').textContent = level >= item.max ? 'Maxed out. The stump is impressed.' : item.copy;
-    document.getElementById('shopDetailPrice').textContent = item.price;
+    document.getElementById('shopDetailPrice').textContent = price;
     const meter = document.getElementById('shopDetailMeter');
     meter.hidden = false;
     meter.innerHTML = Array.from({ length: item.max }, (_, i) => `<i class="${i < level ? 'on' : ''}"></i>`).join('');
-    this.buyButton.disabled = level >= item.max || money < item.price;
-    this.buyButton.textContent = level >= item.max ? 'MAXED OUT' : money < item.price ? 'TOO POOR :(' : 'BUY IT';
+    this.buyButton.disabled = level >= item.max || money < price;
+    this.buyButton.textContent = level >= item.max ? 'MAXED OUT' : money < price ? 'TOO POOR :(' : 'BUY IT';
     this.refreshMoney();
   }
 
@@ -186,8 +191,9 @@ class Shop {
     }
     const item = this.item();
     const level = this.levels[item.id] || 0;
-    if (!window.game || level >= item.max || window.game.money < item.price) return;
-    window.game.money -= item.price;
+    const price = this.upgradePrice(item, level);
+    if (!window.game || level >= item.max || window.game.money < price) return;
+    window.game.money -= price;
     this.levels[item.id] = level + 1;
     window.game.applyShopLevels({ ...this.levels, leafTypes: Object.keys(this.unlockedLeaves) });
     window.game.updateHUD();

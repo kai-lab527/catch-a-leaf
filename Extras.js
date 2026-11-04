@@ -13,18 +13,17 @@
  * keeps running (important, because Game's rAF loop dies on any throw).
  *
  *   1. SAVE SYSTEM     localStorage autosave: money, level, xp, shop, stats
- *   2. POWER-UP ORBS   5 timed buffs, painted from code (no new PNGs)
- *   3. ROTTEN LEAVES   hazard from level 3: wipes combo, steals coins
+ *   2. POWER-UP ORBS   6 timed buffs with unique pixel-art SVG icons
+ *   3. TIMED CHALLENGES rotating objectives with coin rewards
  *   4. WIND GUSTS      telegraphed, sine-eased sideways pushes + streak FX
  *   5. DAY / NIGHT     multiply-blend tint cycle, fireflies, moonlit gold
- *   6. ACHIEVEMENTS    15 unlocks with coin rewards + pixel toasts
+ *   6. ACHIEVEMENTS    Unlocks with coin rewards + pixel toasts
  *   7. PAUSE MENU      P key / button / auto-pause, volume, stats, reset
- *   8. SCREEN SHAKE    + damage flash + shield / time-warp visuals
+ *   8. SCREEN SHAKE    + time-warp visuals
  *
  * Console toys:
  *   LeafPlus.give('midas')   instantly grant a buff
- *                            (warp | magnet | midas | storm | shield)
- *   LeafPlus.drop('shield')  drop an orb onto the bin (or 'rotten')
+ *                            (warp | magnet | midas | storm)
  *   LeafPlus.gust(1)         force a wind gust (1 = right, -1 = left)
  *   LeafPlus.night()         jump the clock to midnight
  *   LeafPlus.wipe()          delete the save and reload
@@ -45,25 +44,16 @@
   const CONFIG = {
     saveKey: 'catchaleaf.plus.save.v1',
     autosaveEvery: 5, // seconds
+    rebirthLevel: 30,
     features: {
       persistence: true,
       powerups: true,
-      rotten: true,
       wind: true,
       achievements: true,
       pause: true,
       dayNight: true
     },
     powerups: { chance: 0.05, cooldown: 14, stackCap: 1.6 },
-    rotten: {
-      fromLevel: 3,
-      baseChance: 0.04,
-      perLevel: 0.006,
-      maxChance: 0.14,
-      maxOnScreen: 3,
-      penaltyPct: 0.04,
-      penaltyCap: 400
-    },
     wind: {
       firstDelay: [18, 28],
       gap: [24, 44],
@@ -99,7 +89,7 @@
   };
 
   /* ===================================================================
-   * Power-up + icon art (all procedural)
+   * Power-up definitions and fallback icon art
    * =================================================================== */
   const POWERS = {
     warp:   { name: 'TIME WARP',   color: '#5ad2ff', duration: 8,  weight: 3, desc: 'Leaves fall 55% slower' },
@@ -107,7 +97,6 @@
     fast:   { name: 'FAST FORWARD', color: '#ff9b42', duration: 5,  weight: 2, desc: 'Game runs 2x faster' },
     midas:  { name: 'MIDAS TOUCH', color: '#ffd23f', duration: 8,  weight: 2, desc: 'Leaf value x2.5' },
     storm:  { name: 'LEAF STORM',  color: '#9bda62', duration: 7,  weight: 2, desc: 'x2.6 leaf drops' },
-    shield: { name: 'BIN SHIELD',  color: '#b58cff', duration: 10, weight: 2, desc: 'Rotten leaves bounce off' }
   };
 
   function leafPath(ctx, r) {
@@ -166,20 +155,6 @@
         ctx.restore();
       }
     },
-    shield(ctx, s, c) {
-      const path = () => {
-        ctx.beginPath();
-        ctx.moveTo(0, -s); ctx.lineTo(s * 0.85, -s * 0.55); ctx.lineTo(s * 0.75, s * 0.15);
-        ctx.quadraticCurveTo(s * 0.5, s * 0.75, 0, s);
-        ctx.quadraticCurveTo(-s * 0.5, s * 0.75, -s * 0.75, s * 0.15);
-        ctx.lineTo(-s * 0.85, -s * 0.55); ctx.closePath();
-      };
-      ctx.fillStyle = c; path(); ctx.fill();
-      ctx.fillStyle = 'rgba(0,0,0,.28)';
-      ctx.beginPath();
-      ctx.moveTo(0, -s); ctx.lineTo(s * 0.85, -s * 0.55); ctx.lineTo(s * 0.75, s * 0.15);
-      ctx.quadraticCurveTo(s * 0.5, s * 0.75, 0, s); ctx.closePath(); ctx.fill();
-    },
     wind(ctx, s, c) {
       ctx.strokeStyle = c; ctx.lineWidth = s * 0.24; ctx.lineCap = 'round';
       for (const y of [-0.6, 0, 0.6]) {
@@ -191,6 +166,20 @@
     }
   };
 
+  const POWER_ICON_SOURCES = {
+    warp: 'Sprites/power_warp.svg',
+    magnet: 'Sprites/power_magnet.svg',
+    fast: 'Sprites/power_fast.svg',
+    midas: 'Sprites/power_midas.svg',
+    storm: 'Sprites/power_storm.svg',
+  };
+  const POWER_ICON_IMAGES = Object.fromEntries(Object.entries(POWER_ICON_SOURCES).map(([kind, src]) => {
+    const image = new Image();
+    image.onerror = () => console.error('[Plus] Failed to load power-up icon:', src);
+    image.src = src;
+    return [kind, image];
+  }));
+
   function iconCanvas(kind, px, color) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const c = document.createElement('canvas');
@@ -199,6 +188,18 @@
     const g = c.getContext('2d');
     if (g) { g.scale(dpr, dpr); g.translate(px / 2, px / 2); ICONS[kind](g, px * 0.38, color); }
     return c;
+  }
+
+  function powerIconElement(kind, px, color) {
+    const src = POWER_ICON_SOURCES[kind];
+    if (!src) return iconCanvas(kind, px, color);
+    const image = el('img');
+    image.src = src;
+    image.width = px;
+    image.height = px;
+    image.alt = '';
+    image.setAttribute('aria-hidden', 'true');
+    return image;
   }
 
   /* ===================================================================
@@ -232,51 +233,14 @@
       ctx.lineDashOffset = -t * r * 0.5;
       ctx.beginPath(); ctx.arc(0, 0, r * 0.88, 0, TAU); ctx.stroke();
       ctx.setLineDash([]);
-      ICONS[this.kind](ctx, r * 0.55, c);
-      ctx.restore();
-    }
-  }
-
-  class RottenLeaf extends Leaf {
-    constructor(x, y, opts = {}) {
-      super(x, y, { ...opts, type: 'rotten' });
-      this.name = 'RottenLeaf';
-      this.color = '#8fd14f';
-      this.value = 0;
-      this.isRotten = true;
-      this.spriteLoaded = true;
-      this._ix = this.x; // x before the magnet gets a chance to drag it
-      this.vy *= 1.12;
-    }
-    loadSprite() { /* procedural */ }
-    update(dt, h, m) {
-      super.update(dt, h, m);
-      this._ix = this.x;
-    }
-    draw(ctx) {
-      if (this.collected) return;
-      const r = this.width / 2, warn = 0.55 + Math.sin(this.pulse * 1.6) * 0.45;
-      ctx.save();
-      ctx.translate(this.x + r, this.y + r);
-      ctx.rotate(this.rot);
-      if (GameObject.glow >= 0.5) { ctx.shadowBlur = 8 + warn * 6; ctx.shadowColor = '#c0392b'; }
-      ctx.fillStyle = '#4a2c3a';
-      leafPath(ctx, r); ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = Math.max(1.5, r * 0.1);
-      ctx.strokeStyle = `rgba(255,70,70,${0.5 + warn * 0.45})`;
-      ctx.stroke();
-      ctx.strokeStyle = '#2a1520';
-      ctx.beginPath(); ctx.moveTo(0, -r * 0.85); ctx.lineTo(0, r * 0.9); ctx.stroke();
-      ctx.fillStyle = '#8fd14f';
-      for (const [a, b, k] of [[-0.28, -0.2, 0.16], [0.25, 0.1, 0.13], [-0.1, 0.45, 0.11]]) {
-        ctx.beginPath(); ctx.arc(a * r, b * r, k * r, 0, TAU); ctx.fill();
+      const icon = POWER_ICON_IMAGES[this.kind];
+      if (icon && icon.complete && icon.naturalWidth) {
+        const iconSize = r * 1.12;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(icon, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+      } else {
+        ICONS[this.kind](ctx, r * 0.55, c);
       }
-      ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = Math.max(1.5, r * 0.12); ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.3, -r * 0.12); ctx.lineTo(r * 0.3, r * 0.3);
-      ctx.moveTo(r * 0.3, -r * 0.12); ctx.lineTo(-r * 0.3, r * 0.3);
-      ctx.stroke();
       ctx.restore();
     }
   }
@@ -321,7 +285,6 @@
    * Achievements
    * =================================================================== */
   const ACHIEVEMENTS = [
-    { id: 'first',   name: 'FIRST CATCH',     desc: 'Catch a leaf',                  reward: 25,   test: (c) => c.s.caught >= 1 },
     { id: 'c100',    name: 'LEAF HOARDER',    desc: 'Catch 100 leaves',              reward: 150,  test: (c) => c.s.caught >= 100 },
     { id: 'c1000',   name: 'LEAF BARON',      desc: 'Catch 1,000 leaves',            reward: 1200, test: (c) => c.s.caught >= 1000 },
     { id: 'combo10', name: 'ON A ROLL',       desc: 'Reach a x10 combo',             reward: 100,  test: (c) => c.s.bestCombo >= 10 },
@@ -332,13 +295,12 @@
     { id: 'lvl10',   name: 'VETERAN RAKER',   desc: 'Reach level 10',                reward: 1000, test: (c) => c.g.level >= 10 },
     { id: 'shop3',   name: 'BIG SPENDER',     desc: 'Buy 3 shop upgrades',           reward: 200,  test: (c) => c.shopCount >= 3 },
     { id: 'power3',  name: 'POWER HUNGRY',    desc: 'Grab 3 power-up orbs',          reward: 300,  test: (c) => c.s.powerups >= 3 },
-    { id: 'shield1', name: 'NOT TODAY',       desc: 'Block a rotten leaf',           reward: 250,  test: (c) => c.s.blocked >= 1 },
     { id: 'gust5',   name: 'WINDSWEPT',       desc: 'Weather 5 wind gusts',          reward: 300,  test: (c) => c.s.gusts >= 5 },
     { id: 'rich',    name: 'POCKET SQUIRREL', desc: 'Earn 10,000 coins in total',    reward: 500,  test: (c) => c.s.earned >= 10000 }
   ];
 
   const defaultStats = () => ({
-    caught: 0, golden: 0, blue: 0, rotten: 0, blocked: 0, powerups: 0,
+    caught: 0, golden: 0, blue: 0, powerups: 0,
     bestCombo: 0, earned: 0, playSeconds: 0, gusts: 0, sessions: 0
   });
 
@@ -369,11 +331,18 @@
     st.textContent = `
 .fx-tray{position:absolute;top:max(1.6vmin,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.8vmin;pointer-events:none!important;z-index:12}
 .fx-chip{position:relative;display:flex;align-items:center;gap:.9vmin;min-width:clamp(150px,24vmin,230px);padding:.8vmin 1.2vmin 1.1vmin;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
-.fx-chip canvas{flex:none}
+.fx-chip canvas,.fx-chip img{flex:none;object-fit:contain;image-rendering:pixelated}
 .fx-chip b{margin-left:auto;color:var(--c);font-weight:700}
 .fx-chip.warn{animation:fxBlink .4s steps(1) infinite}
 .fx-bar{position:absolute;left:0;right:0;bottom:0;height:max(3px,.5vmin);background:rgba(255,255,255,.08)}
 .fx-bar u{display:block;height:100%;width:100%;background:var(--c);text-decoration:none}
+.fx-challenge{width:min(86vw,340px);padding:8px 10px 11px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
+.fx-challenge[hidden]{display:none}
+.fx-challenge-top{display:flex;justify-content:space-between;gap:8px;color:#ffd51b}
+.fx-challenge-title{display:block;margin:4px 0;color:#f5e8d8}
+.fx-challenge-progress{display:flex;justify-content:space-between;gap:8px;color:#d4a06a}
+.fx-challenge-track{height:5px;margin-top:5px;background:rgba(255,255,255,.12)}
+.fx-challenge-fill{display:block;width:0;height:100%;background:#9bda62}
 @keyframes fxChipIn{from{transform:translateY(-1.5vmin) scale(.9);opacity:0}to{transform:none;opacity:1}}
 @keyframes fxBlink{50%{opacity:.35}}
 
@@ -390,11 +359,20 @@
 .fx-pausebtn::after{right:30%}
 .fx-pausebtn:hover,.fx-pausebtn:focus-visible{filter:brightness(1.2);outline:0}
 .fx-pausebtn:active{transform:translate(2px,2px)}
+.fx-rebirthbtn{position:absolute;top:2vmin;left:calc(2vmin + 10vmin);width:clamp(38px,7vmin,58px);height:clamp(38px,7vmin,58px);padding:3px;background:#3d2817;border:2px solid #744018;box-shadow:2px 2px 0 #0a0503;cursor:pointer;z-index:12;-webkit-tap-highlight-color:transparent}
+.fx-rebirthbtn img{display:block;width:100%;height:100%;image-rendering:pixelated}
+.fx-rebirthbtn span{position:absolute;right:-5px;bottom:-5px;min-width:16px;padding:2px 3px;background:#170b28;border:1px solid #ffd51b;color:#ffd51b;font:700 8px 'Press Start 2P',monospace;text-align:center}
+.fx-rebirthbtn:disabled{filter:grayscale(.85);opacity:.65;cursor:pointer}
+.fx-rebirthbtn:disabled:hover{animation:fxRebirthNope .32s ease-in-out}
+.fx-rebirthbtn:disabled:focus-visible{outline:2px dashed #ffd51b;outline-offset:2px}
+@keyframes fxRebirthNope{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.fx-rebirthbtn:not(:disabled):hover,.fx-rebirthbtn:not(:disabled):focus-visible{filter:brightness(1.2);outline:2px dashed #ffd51b;outline-offset:2px}
 @media (max-width:700px){
   .fx-pausebtn{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px;background:rgba(61,40,23,.96);border:3px solid #ffd51b;z-index:30}
   .fx-pausebtn::before,.fx-pausebtn::after{width:18%;background:#fff4d6}
   .fx-pausebtn::before{left:25%}
   .fx-pausebtn::after{right:25%}
+  .fx-rebirthbtn{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 62px);width:50px;height:50px}
 }
 
 .fx-movebtn{display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom) + 13vmin);width:clamp(48px,13vmin,68px);height:clamp(48px,13vmin,68px);padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.58);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;z-index:11}
@@ -443,6 +421,8 @@
       this.wiped = false;
       this.dirty = false;
       this.quality = 1;
+      this.rebirths = 0;
+      this.rebirthMultiplier = 1;
       this.clock = 0;
       this.sky = skyAt(CONFIG.dayNight.startPhase);
       this.phaseName = null;
@@ -455,10 +435,11 @@
       this.active = {};
       this.chips = {};
       this.windChip = null;
+      this.challenge = null;
+      this.challengeDelay = 60;
       this.wind = { state: 'idle', t: range(CONFIG.wind.firstDelay), dur: 1, dir: 1, power: 0, env: 0, cur: 0, acc: 0 };
       this.streaks = [];
       this.shake = { t: 0, dur: 0.3, mag: 0 };
-      this.flash = { t: 0, dur: 0.35, color: '#ff3b3b' };
       this._t = 0;
       this._confirmReset = false;
       this.buildUI();
@@ -499,12 +480,44 @@
       this.toasts = el('div', 'fx-toasts');
       hud.append(this.tray, this.toasts);
 
+      this.challengeCard = el('section', 'fx-challenge');
+      this.challengeCard.hidden = true;
+      const challengeHeader = el('div', 'fx-challenge-top');
+      const challengeLabel = el('span');
+      challengeLabel.textContent = 'TIMED CHALLENGE';
+      this.challengeTimer = el('span');
+      challengeHeader.append(challengeLabel, this.challengeTimer);
+      this.challengeTitle = el('strong', 'fx-challenge-title');
+      const challengeProgress = el('div', 'fx-challenge-progress');
+      this.challengeProgressText = el('span');
+      this.challengeProgressText.textContent = '0 / 0';
+      challengeProgress.appendChild(this.challengeProgressText);
+      const challengeTrack = el('div', 'fx-challenge-track');
+      this.challengeFill = el('u', 'fx-challenge-fill');
+      challengeTrack.appendChild(this.challengeFill);
+      this.challengeCard.append(challengeHeader, this.challengeTitle, challengeProgress, challengeTrack);
+      this.tray.appendChild(this.challengeCard);
+
       this.pauseBtn = el('button', 'fx-pausebtn');
       this.pauseBtn.type = 'button';
       this.pauseBtn.setAttribute('aria-label', 'Pause');
       this.pauseBtn.title = 'Pause (P)';
       if (!CONFIG.features.pause) this.pauseBtn.hidden = true;
       hud.appendChild(this.pauseBtn);
+
+      this.rebirthButton = el('button', 'fx-rebirthbtn');
+      this.rebirthButton.type = 'button';
+      this.rebirthButton.disabled = true;
+      this.rebirthButton.setAttribute('aria-label', `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`);
+      this.rebirthButton.title = `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`;
+      const rebirthIcon = el('img');
+      rebirthIcon.src = 'Sprites/rebirth_icon.svg';
+      rebirthIcon.alt = '';
+      rebirthIcon.setAttribute('aria-hidden', 'true');
+      this.rebirthCount = el('span');
+      this.rebirthCount.textContent = '0';
+      this.rebirthButton.append(rebirthIcon, this.rebirthCount);
+      hud.appendChild(this.rebirthButton);
 
       this.arrowButtons = [
         ['left', 'arrowleft'],
@@ -553,6 +566,7 @@
     bind() {
       const g = this.g;
       this.pauseBtn.addEventListener('click', (e) => { e.stopPropagation(); this.togglePause(); });
+      this.rebirthButton.addEventListener('click', () => this.rebirth());
       this.ui.resume.addEventListener('click', () => this.resume());
       this.ui.vol.addEventListener('input', () => {
         if (g.audio) g.audio.setVolume(Number(this.ui.vol.value) / 100);
@@ -671,7 +685,8 @@
         achievements: this.unlocked,
         clock: this.clock,
         volume: g.audio ? g.audio.volume : 0.3,
-        quality: this.quality
+        quality: this.quality,
+        rebirths: this.rebirths
       };
     }
     save() {
@@ -684,6 +699,8 @@
       const g = this.g, shop = window.shop;
       const d = CONFIG.features.persistence ? data : null;
       if (d && d.v === 1) {
+        this.rebirths = Math.floor(num(d.rebirths, 0, 1e6));
+        this.rebirthMultiplier = 1 + this.rebirths * 0.1;
         g.money = Math.floor(num(d.money, 0, 1e15));
         g.level = Math.floor(num(d.level, 1, 9999, 1));
         g.xpToNext = Math.floor(num(d.xpToNext, 1, 1e12, 250));
@@ -715,7 +732,58 @@
       }
       this.stats.sessions++;
       this.restored = true;
+      this.updateRebirthButton();
       g.updateHUD();
+    }
+    updateRebirthButton() {
+      const unlocked = this.g.level >= CONFIG.rebirthLevel;
+      this.rebirthButton.disabled = !unlocked;
+      this.rebirthCount.textContent = String(this.rebirths);
+      this.rebirthButton.setAttribute('aria-label', unlocked
+        ? `Rebirth, current rebirth count ${this.rebirths}`
+        : `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`);
+      this.rebirthButton.title = unlocked
+        ? `Rebirth now: reset coins, level, upgrades, and leaf varieties for +10% permanent earnings. Current bonus: +${Math.round((this.rebirthMultiplier - 1) * 100)}%.`
+        : `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`;
+    }
+    rebirth() {
+      const g = this.g, shop = window.shop;
+      if (g.level < CONFIG.rebirthLevel || !shop) return;
+      const nextBonus = Math.round((this.rebirthMultiplier + 0.1) * 100);
+      if (!window.confirm(`Rebirth now? This resets your coins, level, upgrades, and leaf varieties. You will keep achievements and gain +10% permanent earnings (next bonus: +${nextBonus}%).`)) return;
+
+      this.rebirths++;
+      this.rebirthMultiplier = 1 + this.rebirths * 0.1;
+      g.money = 0;
+      g.level = 1;
+      g.xp = 0;
+      g.xpToNext = 250;
+      g.combo = 0;
+      g.comboTimer = 0;
+      for (const leaf of g.leaves) {
+        const index = g.entities.indexOf(leaf);
+        if (index >= 0) g.entities.splice(index, 1);
+      }
+      g.leaves.length = 0;
+      for (const kind of Object.keys(this.chips)) this.removeChip(kind);
+      this.active = {};
+      this.challenge = null;
+      this.challengeCard.hidden = true;
+      this.challengeDelay = 60;
+      shop.levels = {};
+      shop.unlockedLeaves = {};
+      g.applyShopLevels({ leafTypes: [] });
+      shop.render();
+      g.updateHUD();
+      this.updateRebirthButton();
+      this.dirty = true;
+      this.save();
+      this.toast({
+        name: `REBIRTH ${this.rebirths}`,
+        desc: `Permanent earnings bonus is now +${Math.round((this.rebirthMultiplier - 1) * 100)}%.`,
+        reward: 0
+      }, 'REBIRTH COMPLETE');
+      if (g.audio) g.audio.playCombo(14);
     }
     shopSignature() {
       const s = window.shop;
@@ -729,6 +797,16 @@
       this.clock += dt;
       this.stats.playSeconds += dt;
       if (this.cooldown > 0) this.cooldown -= dt;
+
+      if (this.challenge) {
+        this.challenge.remaining = Math.max(0, this.challenge.remaining - dt);
+        this.updateChallengeProgress();
+        if (this.challenge && this.challenge.remaining <= 0) this.finishChallenge(false);
+        if (this.challenge) this.updateChallengeUI();
+      } else {
+        this.challengeDelay -= dt;
+        if (this.challengeDelay <= 0) this.startChallenge();
+      }
 
       for (const k of Object.keys(this.active)) {
         const a = this.active[k];
@@ -771,10 +849,7 @@
 
     postUpdate(dt) {
       const dx = this.wind.cur * dt;
-      for (const leaf of this.g.leaves) {
-        if (leaf.isRotten) { leaf.x = leaf._ix + dx; leaf._ix = leaf.x; } // undo magnet drag, keep wind
-        else if (dx) leaf.x += dx;
-      }
+      for (const leaf of this.g.leaves) if (dx) leaf.x += dx;
     }
 
     /* ---------- spawning ---------- */
@@ -785,16 +860,8 @@
       g.leaves.push(orb); g.entities.push(orb);
       return orb;
     }
-    spawnRotten(x, y) {
-      const g = this.g, sc = g.scale || 1, { w } = g.getViewSize();
-      const size = Math.max(30 * sc, 28);
-      const leaf = new RottenLeaf(x == null ? rand(0, Math.max(1, w - size)) : x - size / 2, y == null ? -size : y, { size, scale: sc });
-      g.leaves.push(leaf); g.entities.push(leaf);
-      return leaf;
-    }
     pickPower() {
-      const g = this.g;
-      const pool = Object.keys(POWERS).filter((k) => k !== 'shield' || (CONFIG.features.rotten && g.level >= CONFIG.rotten.fromLevel));
+      const pool = Object.keys(POWERS);
       let total = 0;
       for (const k of pool) total += POWERS[k].weight;
       let r = Math.random() * total;
@@ -803,18 +870,11 @@
     }
     /* Returns true when it spawned something instead of a regular leaf. */
     trySpawnSpecial() {
-      const g = this.g, F = CONFIG.features, P = CONFIG.powerups, R = CONFIG.rotten;
+      const g = this.g, F = CONFIG.features, P = CONFIG.powerups;
       if (F.powerups && this.cooldown <= 0 && Math.random() < P.chance && !g.leaves.some((l) => l.isPowerUp)) {
         this.spawnOrb(this.pickPower());
         this.cooldown = 3;
         return true;
-      }
-      if (F.rotten && g.level >= R.fromLevel) {
-        const chance = Math.min(R.maxChance, R.baseChance + (g.level - R.fromLevel) * R.perLevel);
-        if (Math.random() < chance && g.leaves.filter((l) => l.isRotten).length < R.maxOnScreen) {
-          this.spawnRotten();
-          return true;
-        }
       }
       return false;
     }
@@ -842,34 +902,12 @@
       this.activate(orb.kind);
       this.stats.powerups++;
       this.cooldown = CONFIG.powerups.cooldown;
+      this.updateChallengeProgress();
       g.spawnParticles(mx, my, 34, { color: p.color, shape: 'star' });
       g.showFloatText(p.name + '!', mx, my - 14, p.color, 14);
       if (g.audio) { g.audio.playCollect(); g.audio.playCombo(10); }
       g.player.catchFlash();
       this.shakeScreen(4, 0.22);
-      this.dirty = true;
-      this.checkAchievements();
-    }
-    collectRotten(leaf, mx, my) {
-      const g = this.g, R = CONFIG.rotten;
-      if (this.active.shield) {
-        this.stats.blocked++;
-        g.spawnParticles(mx, my, 16, { color: '#b58cff', shape: 'circle' });
-        g.showFloatText('BLOCKED!', mx, my - 14, '#b58cff', 12);
-        g.player.catchFlash();
-        this.dirty = true;
-        this.checkAchievements();
-        return;
-      }
-      g.combo = 0; g.comboTimer = 0;
-      const loss = Math.min(Math.floor(g.money * R.penaltyPct), R.penaltyCap);
-      g.money = Math.max(0, g.money - loss);
-      this.stats.rotten++;
-      g.spawnParticles(mx, my, 22, { color: '#8fd14f', shape: 'square' });
-      g.showFloatText(loss ? 'ROTTEN! -' + fmt(loss) : 'ROTTEN!', mx, my - 14, '#ff6b6b', 13);
-      this.shakeScreen(9, 0.35);
-      this.flash.t = this.flash.dur;
-      g.updateHUD();
       this.dirty = true;
       this.checkAchievements();
     }
@@ -882,6 +920,7 @@
       s.earned += Math.max(0, gain);
       this.dirty = true;
       this.checkAchievements();
+      this.updateChallengeProgress();
     }
     shakeScreen(mag, dur) {
       if (mag >= this.shake.mag * (this.shake.t / (this.shake.dur || 1))) this.shake = { t: dur, dur, mag };
@@ -899,6 +938,82 @@
         if (!this.unlocked[a.id] && a.test(ctx)) this.unlock(a);
       }
     }
+    startChallenge() {
+      const timeLimit = Math.floor(rand(210, 601));
+      const difficulty = (timeLimit - 210) / 390;
+      const options = [
+        { type: 'catch', name: 'LEAF RUSH', target: Math.round(100 + difficulty * 80), unit: 'leaves', metric: 'caught' },
+        { type: 'golden', name: 'GOLDEN GRAB', target: 3 + Math.round(difficulty * 4), unit: 'gold leaves', metric: 'golden' },
+        { type: 'combo', name: 'COMBO MASTER', target: 18 + Math.round(difficulty * 8), unit: 'combo', metric: 'combo' },
+        { type: 'powerups', name: 'POWER HUNTER', target: 3 + Math.round(difficulty * 3), unit: 'power-ups', metric: 'powerups' }
+      ];
+      const selected = options[Math.floor(Math.random() * options.length)];
+      const description = selected.type === 'combo'
+        ? `Reach a x${selected.target} combo`
+        : `Collect ${selected.target} ${selected.unit}`;
+      this.challenge = {
+        ...selected,
+        description,
+        remaining: timeLimit,
+        reward: Math.round(300 + difficulty * 600),
+        startValue: this.stats[selected.metric] || 0,
+        progress: 0
+      };
+      this.challengeCard.hidden = false;
+      this.updateChallengeUI();
+      this.toast({
+        name: selected.name,
+        desc: description + ' before time runs out!',
+        reward: 0,
+        timeLimit
+      }, 'NEW CHALLENGE');
+    }
+    updateChallengeProgress() {
+      const challenge = this.challenge;
+      if (!challenge) return;
+      const current = challenge.type === 'combo'
+        ? this.g.combo
+        : this.stats[challenge.metric] - challenge.startValue;
+      challenge.progress = Math.max(challenge.progress, current);
+      this.updateChallengeUI();
+      if (challenge.progress >= challenge.target) this.finishChallenge(true);
+    }
+    updateChallengeUI() {
+      const challenge = this.challenge;
+      if (!challenge) return;
+      const remaining = Math.max(0, Math.ceil(challenge.remaining));
+      const minutes = Math.floor(remaining / 60);
+      const seconds = String(remaining % 60).padStart(2, '0');
+      this.challengeTimer.textContent = `${minutes}:${seconds}`;
+      this.challengeTitle.textContent = challenge.description;
+      this.challengeProgressText.textContent = `${Math.min(challenge.progress, challenge.target)} / ${challenge.target} ${challenge.unit}`;
+      this.challengeFill.style.width = `${Math.min(100, (challenge.progress / challenge.target) * 100)}%`;
+    }
+    finishChallenge(success) {
+      const challenge = this.challenge;
+      if (!challenge) return;
+      this.challenge = null;
+      this.challengeCard.hidden = true;
+      this.challengeDelay = rand(45, 90);
+      if (success) {
+        this.g.money += challenge.reward;
+        this.g.updateHUD();
+        this.toast({
+          name: challenge.name,
+          desc: 'Challenge complete!',
+          reward: challenge.reward
+        }, 'CHALLENGE COMPLETE');
+        if (this.g.audio) this.g.audio.playCombo(14);
+      } else {
+        this.toast({
+          name: challenge.name,
+          desc: 'Time ran out. Try again next event!',
+          reward: 0
+        }, 'CHALLENGE FAILED');
+      }
+      this.dirty = true;
+      this.save();
+    }
     unlock(a) {
       const g = this.g;
       this.unlocked[a.id] = Date.now();
@@ -909,14 +1024,21 @@
       this.dirty = true;
       this.save();
     }
-    toast(a) {
+    toast(a, label = 'ACHIEVEMENT') {
       const t = el('div', 'fx-toast');
       const k = el('small'), n = el('strong'), d = el('small'), r = el('em');
-      k.textContent = 'ACHIEVEMENT'; n.textContent = a.name; d.textContent = a.desc; r.textContent = '+' + fmt(a.reward) + '\u00A2';
+      k.textContent = label;
+      n.textContent = a.name;
+      d.textContent = a.desc;
+      r.textContent = a.reward ? '+' + fmt(a.reward) + '\u00A2' : (a.timeLimit ? 'TIME LIMIT: ' + this.formatChallengeTime(a.timeLimit) : '');
       t.append(k, n, d, r);
       this.toasts.appendChild(t);
       while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
       setTimeout(() => t.remove(), 3700);
+    }
+    formatChallengeTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
     }
 
     /* ---------- tray chips ---------- */
@@ -928,7 +1050,7 @@
       const name = el('span'), time = el('b'), wrap = el('div', 'fx-bar'), bar = el('u');
       name.textContent = p.name;
       wrap.appendChild(bar);
-      chip.append(iconCanvas(kind, 22, p.color), name, time, wrap);
+      chip.append(powerIconElement(kind, 22, p.color), name, time, wrap);
       chip.timeEl = time; chip.barEl = bar;
       this.tray.appendChild(chip);
       this.chips[kind] = chip;
@@ -1092,24 +1214,6 @@
       }
 
       const p = g.player;
-      if (this.active.shield && p) {
-        const pulse = 0.6 + 0.4 * Math.sin(this.clock * 6);
-        ctx.save();
-        ctx.translate(p.x + p.width / 2, p.y + p.height / 2);
-        ctx.strokeStyle = 'rgba(181,140,255,' + (0.45 + pulse * 0.4).toFixed(3) + ')';
-        ctx.lineWidth = Math.max(2, 3 * sc);
-        ctx.setLineDash([10 * sc, 6 * sc]); ctx.lineDashOffset = -this.clock * 40;
-        ctx.beginPath(); ctx.arc(0, 0, p.width * 0.82, 0, TAU); ctx.stroke();
-        ctx.restore();
-      }
-
-      if (this.flash.t > 0) {
-        ctx.save();
-        ctx.globalAlpha = clamp(this.flash.t / this.flash.dur, 0, 1) * 0.35;
-        ctx.fillStyle = this.flash.color; ctx.fillRect(0, 0, w, h);
-        ctx.restore();
-        if (live) this.flash.t -= rdt;
-      }
     }
   }
 
@@ -1118,6 +1222,12 @@
    * whenever the controller is missing or has unplugged itself.
    * =================================================================== */
   const origStart = Game.prototype.start;
+  const origApplyShopLevels = Game.prototype.applyShopLevels;
+  Game.prototype.applyShopLevels = function (levels = {}) {
+    origApplyShopLevels.call(this, levels);
+    if (this.fx && !this.fx.dead) this.shopBonuses.leafValue *= this.fx.rebirthMultiplier;
+  };
+
   Game.prototype.start = function () {
     origStart.call(this);
     try {
@@ -1169,7 +1279,6 @@
     const fx = this.fx;
     if (!fx || fx.dead) return origCollect.call(this, leaf, mx, my, clicked);
     if (leaf.isPowerUp) { fx.safe('collectPower', () => fx.collectPower(leaf, mx, my)); return; }
-    if (leaf.isRotten) { fx.safe('collectRotten', () => fx.collectRotten(leaf, mx, my)); return; }
     const before = this.money;
     const result = origCollect.call(this, leaf, mx, my, clicked);
     fx.safe('onCatch', () => fx.onCatch(leaf, this.money - before));
@@ -1180,7 +1289,12 @@
   Game.prototype.levelUp = function () {
     origLevelUp.call(this);
     const fx = this.fx;
-    if (fx && !fx.dead) fx.safe('levelUp', () => { fx.dirty = true; fx.checkAchievements(); fx.save(); });
+    if (fx && !fx.dead) fx.safe('levelUp', () => {
+      fx.updateRebirthButton();
+      fx.dirty = true;
+      fx.checkAchievements();
+      fx.save();
+    });
   };
 
   /* ===================================================================
@@ -1195,8 +1309,7 @@
       const f = this.fx, p = f && f.g.player;
       if (!f || !p) return;
       const cx = p.x + p.width / 2, y = p.y - 30;
-      if (kind === 'rotten') f.spawnRotten(cx, y);
-      else if (POWERS[kind]) f.spawnOrb(kind, cx, y);
+      if (POWERS[kind]) f.spawnOrb(kind, cx, y);
     },
     gust(dir = 1) {
       const f = this.fx;
