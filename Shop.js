@@ -7,8 +7,13 @@ class Shop {
     this.closeButton = document.getElementById('shopClose');
     this.buyButton = document.getElementById('shopBuy');
     this.money = document.getElementById('shopMoney');
+    this.upgradesTab = document.getElementById('shopTabUpgrades');
+    this.leavesTab = document.getElementById('shopTabLeaves');
+    this.category = 'upgrades';
     this.selected = 'spicy';
+    this.selectedLeaf = 'fern';
     this.levels = {};
+    this.unlockedLeaves = {};
     this.items = [
       { id: 'piggy', code: 'PP', icon: 0, name: 'Piggy Pockets', effect: '+50% leaf value', copy: 'Stuff more leaf-value into every pocket.', price: 500, max: 5, color: '#f5c842' },
       { id: 'sneakers', code: 'SQ', icon: 1, name: 'Squirrel Sneakers', effect: '+15% move speed', copy: 'Run like a squirrel with somewhere to be.', price: 555, max: 5, color: '#29d5d5' },
@@ -19,11 +24,16 @@ class Shop {
       { id: 'blueberry', code: 'BL', icon: 6, name: 'Blueberry Luck', effect: 'More blue leaves', copy: 'A suspiciously blue improvement.', price: 800, max: 5, color: '#22c9f2' },
       { id: 'spicy', code: 'SS', icon: 7, name: 'Spicy Streak', effect: '+25% combo bonus', copy: 'Turn a good streak into a spicy streak.', price: 700, max: 5, color: '#ff920f' }
     ];
+    this.varieties = [
+      { id: 'fern', name: 'Fern Frond', effect: 'Worth 6¢ per catch', copy: 'Add fern fronds to the falling-leaf pool.', price: 180, sprite: 'fern_frond.png', color: '#83b84a' },
+      { id: 'ginkgo', name: 'Ginkgo Fan', effect: 'Worth 9¢ per catch', copy: 'Add golden ginkgo fans to the falling-leaf pool.', price: 420, sprite: 'ginkgo_leaf.png', color: '#f0c84b' },
+      { id: 'oak', name: 'Oak Leaf', effect: 'Worth 13¢ per catch', copy: 'Add fiery oak leaves to the falling-leaf pool.', price: 800, sprite: 'oak_leaf.png', color: '#d98232' }
+    ];
     this.boot();
   }
 
   boot() {
-    if (!this.overlay || !this.grid || !this.skillButton) return;
+    if (!this.overlay || !this.grid || !this.skillButton || !this.upgradesTab || !this.leavesTab) return;
     this.skillButton.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -31,6 +41,8 @@ class Shop {
     });
     this.closeButton.addEventListener('click', () => this.close());
     this.buyButton.addEventListener('click', () => this.buy());
+    this.upgradesTab.addEventListener('click', () => this.setCategory('upgrades'));
+    this.leavesTab.addEventListener('click', () => this.setCategory('leaves'));
     this.overlay.addEventListener('click', (event) => {
       if (event.target === this.overlay) this.close();
     });
@@ -41,6 +53,17 @@ class Shop {
   }
 
   isOpen() { return this.overlay.classList.contains('is-open'); }
+
+  setCategory(category) {
+    this.category = category;
+    this.upgradesTab.classList.toggle('is-active', category === 'upgrades');
+    this.leavesTab.classList.toggle('is-active', category === 'leaves');
+    this.upgradesTab.setAttribute('aria-selected', String(category === 'upgrades'));
+    this.leavesTab.setAttribute('aria-selected', String(category === 'leaves'));
+    this.grid.setAttribute('aria-label', category === 'leaves' ? 'Leaf varieties' : 'Shop upgrades');
+    this.render();
+    this.grid.scrollTop = 0;
+  }
 
   open() {
     if (!window.game || window.game.state !== 'playing') return;
@@ -59,23 +82,36 @@ class Shop {
   }
 
   item(id = this.selected) { return this.items.find((item) => item.id === id) || this.items[7]; }
+  variety(id = this.selectedLeaf) { return this.varieties.find((item) => item.id === id) || this.varieties[0]; }
 
   render() {
-    this.grid.innerHTML = this.items.map((item) => {
-      const level = this.levels[item.id] || 0;
-      const selected = item.id === this.selected ? ' selected' : '';
-      const maxed = level >= item.max ? ' maxed' : '';
-      const iconPosition = (item.icon / 7) * 100;
-      return `<button class="shop-card${selected}${maxed}" data-shop-item="${item.id}" style="--item-color:${item.color};--icon-position:${iconPosition}%" type="button" aria-label="${item.name}">
-        <span class="shop-card-icon" aria-hidden="true"></span>
-        <strong>${item.name}</strong>
-        <small>${item.effect}</small>
-        <span class="shop-card-meta"><b>¢ ${item.price}</b><em>LV ${level}/${item.max}</em></span>
-      </button>`;
-    }).join('');
+    this.grid.innerHTML = this.category === 'leaves'
+      ? this.varieties.map((item) => {
+        const owned = Boolean(this.unlockedLeaves[item.id]);
+        const selected = item.id === this.selectedLeaf ? ' selected' : '';
+        return `<button class="shop-card leaf-card${selected}${owned ? ' owned' : ''}" data-leaf-id="${item.id}" style="--item-color:${item.color};--leaf-art:url('Sprites/${item.sprite}')" type="button" aria-label="${item.name}">
+          <span class="shop-card-icon leaf-variety-icon" aria-hidden="true"></span>
+          <strong>${item.name}</strong>
+          <small>${item.effect}</small>
+          <span class="shop-card-meta"><b>¢ ${item.price}</b><em>${owned ? 'OWNED' : 'BUY'}</em></span>
+        </button>`;
+      }).join('')
+      : this.items.map((item) => {
+        const level = this.levels[item.id] || 0;
+        const selected = item.id === this.selected ? ' selected' : '';
+        const maxed = level >= item.max ? ' maxed' : '';
+        const iconPosition = (item.icon / 7) * 100;
+        return `<button class="shop-card${selected}${maxed}" data-shop-item="${item.id}" style="--item-color:${item.color};--icon-position:${iconPosition}%" type="button" aria-label="${item.name}">
+          <span class="shop-card-icon" aria-hidden="true"></span>
+          <strong>${item.name}</strong>
+          <small>${item.effect}</small>
+          <span class="shop-card-meta"><b>¢ ${item.price}</b><em>LV ${level}/${item.max}</em></span>
+        </button>`;
+      }).join('');
     this.grid.querySelectorAll('.shop-card').forEach((card) => {
       card.addEventListener('click', () => {
-        this.selected = card.dataset.shopItem;
+        if (this.category === 'leaves') this.selectedLeaf = card.dataset.leafId;
+        else this.selected = card.dataset.shopItem;
         this.render();
       });
     });
@@ -83,20 +119,46 @@ class Shop {
   }
 
   renderDetail() {
+    if (this.category === 'leaves') {
+      this.renderLeafDetail();
+      return;
+    }
     const item = this.item();
     const level = this.levels[item.id] || 0;
     const money = window.game ? window.game.money : 0;
     const detailArt = document.getElementById('shopDetailArt');
     detailArt.textContent = '';
+    detailArt.classList.remove('leaf-detail-art');
+    detailArt.style.removeProperty('--leaf-art');
     detailArt.style.setProperty('--item-color', item.color);
     detailArt.style.setProperty('--icon-position', `${(item.icon / 7) * 100}%`);
     document.getElementById('shopDetailName').textContent = item.name;
     document.getElementById('shopDetailEffect').textContent = item.effect;
     document.getElementById('shopDetailCopy').textContent = level >= item.max ? 'Maxed out. The stump is impressed.' : item.copy;
     document.getElementById('shopDetailPrice').textContent = item.price;
-    document.getElementById('shopDetailMeter').innerHTML = Array.from({ length: item.max }, (_, i) => `<i class="${i < level ? 'on' : ''}"></i>`).join('');
+    const meter = document.getElementById('shopDetailMeter');
+    meter.hidden = false;
+    meter.innerHTML = Array.from({ length: item.max }, (_, i) => `<i class="${i < level ? 'on' : ''}"></i>`).join('');
     this.buyButton.disabled = level >= item.max || money < item.price;
     this.buyButton.textContent = level >= item.max ? 'MAXED OUT' : money < item.price ? 'TOO POOR :(' : 'BUY IT';
+    this.refreshMoney();
+  }
+
+  renderLeafDetail() {
+    const item = this.variety();
+    const owned = Boolean(this.unlockedLeaves[item.id]);
+    const money = window.game ? window.game.money : 0;
+    const detailArt = document.getElementById('shopDetailArt');
+    detailArt.textContent = '';
+    detailArt.classList.add('leaf-detail-art');
+    detailArt.style.setProperty('--leaf-art', `url('Sprites/${item.sprite}')`);
+    document.getElementById('shopDetailName').textContent = item.name;
+    document.getElementById('shopDetailEffect').textContent = item.effect;
+    document.getElementById('shopDetailCopy').textContent = owned ? 'This variety is now part of your falling leaves.' : item.copy;
+    document.getElementById('shopDetailPrice').textContent = item.price;
+    document.getElementById('shopDetailMeter').hidden = true;
+    this.buyButton.disabled = owned || money < item.price;
+    this.buyButton.textContent = owned ? 'OWNED' : money < item.price ? 'TOO POOR :(' : 'BUY LEAF';
     this.refreshMoney();
   }
 
@@ -106,12 +168,25 @@ class Shop {
   }
 
   buy() {
+    if (this.category === 'leaves') {
+      const item = this.variety();
+      if (!window.game || this.unlockedLeaves[item.id] || window.game.money < item.price) return;
+      window.game.money -= item.price;
+      this.unlockedLeaves[item.id] = true;
+      window.game.applyShopLevels({ ...this.levels, leafTypes: Object.keys(this.unlockedLeaves) });
+      window.game.updateHUD();
+      this.render();
+      this.buyButton.classList.remove('bought');
+      void this.buyButton.offsetWidth;
+      this.buyButton.classList.add('bought');
+      return;
+    }
     const item = this.item();
     const level = this.levels[item.id] || 0;
     if (!window.game || level >= item.max || window.game.money < item.price) return;
     window.game.money -= item.price;
     this.levels[item.id] = level + 1;
-    window.game.applyShopLevels(this.levels);
+    window.game.applyShopLevels({ ...this.levels, leafTypes: Object.keys(this.unlockedLeaves) });
     window.game.updateHUD();
     this.render();
     this.buyButton.classList.remove('bought');

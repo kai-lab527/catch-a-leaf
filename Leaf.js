@@ -15,8 +15,12 @@ class Leaf extends GameObject {
     this.type = opts.type || 'normal';
     this.golden = (this.type === 'golden');
     this.blue = (this.type === 'blue');
+    const variety = Leaf.VARIETIES[this.type];
+    this.color = variety?.color || (this.golden ? '#ffd700' : (this.blue ? '#29b6f6' : '#ffb347'));
     
-    if (this.type === 'golden') {
+    if (variety) {
+      this.value = variety.value;
+    } else if (this.type === 'golden') {
       this.value = 40;
     } else if (this.type === 'blue') {
       this.value = 15;
@@ -37,14 +41,9 @@ class Leaf extends GameObject {
 
   loadSprite() {
     const img = new Image();
-    let fileName;
-    if (this.type === 'golden') {
-      fileName = 'golden_maple_leaf.png';
-    } else if (this.type === 'blue') {
-      fileName = 'blue_maple_leaf.png';
-    } else {
-      fileName = 'normal_maple_leaf.png';
-    }
+    const fileName = Leaf.VARIETIES[this.type]?.sprite || (this.type === 'golden'
+      ? 'golden_maple_leaf.png'
+      : (this.type === 'blue' ? 'blue_maple_leaf.png' : 'normal_maple_leaf.png'));
     img.src = 'Sprites/' + fileName;
     img.onload = () => {
       this.sprite = img;
@@ -60,6 +59,12 @@ class Leaf extends GameObject {
       this.spriteLoaded = true;
     }
   }
+
+  static VARIETIES = {
+    fern: { sprite: 'fern_frond.png', value: 6, color: '#83b84a' },
+    ginkgo: { sprite: 'ginkgo_leaf.png', value: 9, color: '#f0c84b' },
+    oak: { sprite: 'oak_leaf.png', value: 13, color: '#d98232' }
+  };
 
   static normalSprite = null;
   static normalSpriteLoaded = false;

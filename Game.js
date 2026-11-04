@@ -23,7 +23,7 @@ class Game {
     this.shopLevels = {};
     this.shopBonuses = {
       leafValue: 1, moveSpeed: 1, catchArea: 0, magnet: 0,
-      dropRate: 1, fallSpeed: 1, blueChance: 0.008, comboBonus: 1
+      dropRate: 1, fallSpeed: 1, blueChance: 0.008, comboBonus: 1, leafTypes: []
     };
 
     this.keys = {};
@@ -248,7 +248,8 @@ class Game {
       dropRate: 1 + (levels.grumpy || 0) * 0.3,
       fallSpeed: Math.max(0.6, 1 - (levels.slowpoke || 0) * 0.08),
       blueChance: 0.008 * (1 + (levels.blueberry || 0)),
-      comboBonus: 1 + (levels.spicy || 0) * 0.25
+      comboBonus: 1 + (levels.spicy || 0) * 0.25,
+      leafTypes: Array.isArray(levels.leafTypes) ? levels.leafTypes : []
     };
     if (this.player) this.player.catchBonus = this.shopBonuses.catchArea;
   }
@@ -279,11 +280,16 @@ class Game {
     const scale = this.scale || 1;
     const goldenChance = 0.02;
     const blueChance = this.shopBonuses.blueChance;
+    const leafTypes = this.shopBonuses.leafTypes;
+    const varietyChance = Math.min(0.36, leafTypes.length * 0.08);
     const roll = Math.random();
     
     let type = 'normal';
     if (roll < blueChance) type = 'blue';
     else if (roll < blueChance + goldenChance) type = 'golden';
+    else if (leafTypes.length && roll < blueChance + goldenChance + varietyChance) {
+      type = leafTypes[Math.floor(Math.random() * leafTypes.length)];
+    }
     
     const baseSize = 0.7 + Math.random() * 0.3;
     const size = Math.max(28 * scale, baseSize * scale * 32);
@@ -338,13 +344,13 @@ class Game {
     if (moneyRect && canvasRect) {
       const targetX = moneyRect.left + moneyRect.width / 2 - canvasRect.left;
       const targetY = moneyRect.top + moneyRect.height / 2 - canvasRect.top;
-      this.spawnFloatingStat(mx, my, `+${Fmt.short(value)}`, targetX, targetY, leaf.golden ? '#ffd700' : (leaf.blue ? '#3ac9ff' : '#ffb347'));
+      this.spawnFloatingStat(mx, my, `+${Fmt.short(value)}`, targetX, targetY, leaf.color);
     }
 
     this.money += value;
     this.player.catchFlash();
     this.spawnParticles(mx, my, (leaf.golden || leaf.blue) ? 25 : 12, { 
-      color: leaf.golden ? '#ffd700' : (leaf.blue ? '#3ac9ff' : '#ffcc00'), shape: leaf.blue ? 'star' : undefined 
+      color: leaf.color, shape: leaf.blue ? 'star' : undefined 
     });
     this.updateHUD();
   }
