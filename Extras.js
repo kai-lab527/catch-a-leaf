@@ -23,7 +23,7 @@
  *
  * Console toys:
  *   LeafPlus.give('midas')   instantly grant a buff
- *                            (warp | magnet | midas | storm)
+ *                            (warp | midas | storm)
  *   LeafPlus.gust(1)         force a wind gust (1 = right, -1 = left)
  *   LeafPlus.night()         jump the clock to midnight
  *   LeafPlus.wipe()          delete the save and reload
@@ -44,7 +44,6 @@
   const CONFIG = {
     saveKey: 'catchaleaf.plus.save.v1',
     autosaveEvery: 5, // seconds
-    rebirthLevel: 30,
     features: {
       persistence: true,
       powerups: true,
@@ -94,7 +93,6 @@
    * =================================================================== */
   const POWERS = {
     warp:   { name: 'TIME WARP',   color: '#5ad2ff', duration: 8,  weight: 3, desc: 'Leaves fall 55% slower' },
-    magnet: { name: 'MEGA MAGNET', color: '#ff6b8a', duration: 9,  weight: 3, desc: 'Leaves fly into your bin' },
     fast:   { name: 'FAST FORWARD', color: '#ff9b42', duration: 5,  weight: 2, desc: 'Game runs 2x faster' },
     midas:  { name: 'MIDAS TOUCH', color: '#ffd23f', duration: 8,  weight: 2, desc: 'Leaf value x2.5' },
     storm:  { name: 'LEAF STORM',  color: '#9bda62', duration: 7,  weight: 2, desc: 'x2.6 leaf drops' },
@@ -118,18 +116,6 @@
       ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-s * 0.6, -s * 0.9); ctx.lineTo(s * 0.6, -s * 0.9); ctx.lineTo(0, 0); ctx.closePath(); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-s * 0.6, s * 0.9); ctx.lineTo(s * 0.6, s * 0.9); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
-    },
-    magnet(ctx, s, c) {
-      ctx.lineCap = 'butt'; ctx.lineWidth = s * 0.5; ctx.strokeStyle = c;
-      ctx.beginPath(); ctx.arc(0, -s * 0.05, s * 0.62, 0, Math.PI); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-s * 0.62, -s * 0.05); ctx.lineTo(-s * 0.62, -s * 0.85);
-      ctx.moveTo(s * 0.62, -s * 0.05); ctx.lineTo(s * 0.62, -s * 0.85);
-      ctx.stroke();
-      ctx.strokeStyle = '#ffffff';
-      ctx.beginPath(); ctx.moveTo(-s * 0.62, -s * 0.85); ctx.lineTo(-s * 0.62, -s * 0.52); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,.55)';
-      ctx.beginPath(); ctx.moveTo(s * 0.62, -s * 0.85); ctx.lineTo(s * 0.62, -s * 0.52); ctx.stroke();
     },
     fast(ctx, s, c) {
       ctx.fillStyle = c;
@@ -169,7 +155,6 @@
 
   const POWER_ICON_SOURCES = {
     warp: 'Sprites/power_warp.svg',
-    magnet: 'Sprites/power_magnet.svg',
     fast: 'Sprites/power_fast.svg',
     midas: 'Sprites/power_midas.svg',
     storm: 'Sprites/power_storm.svg',
@@ -205,7 +190,7 @@
 
   /* ===================================================================
    * New falling things. They extend Leaf so Game.update treats them
-   * exactly like any other leaf (fall, sway, magnet, collision, cull).
+   * exactly like any other leaf (fall, sway, collision, cull).
    * =================================================================== */
   class PowerOrb extends Leaf {
     constructor(x, y, kind, opts = {}) {
@@ -258,12 +243,6 @@
     [0.92, 100, 114, 186, 1.00, 'NIGHT'],
     [1.00, 255, 214, 176, 0.10, 'DAWN']
   ];
-  const PHASE_TEXT = {
-    DAWN:  ['SUNRISE', '#ffd6b0'],
-    DAY:   ['DAYTIME', '#fff3a3'],
-    DUSK:  ['SUNSET', '#ffb88a'],
-    NIGHT: ['NIGHTFALL: MORE GOLD', '#9fb4ff']
-  };
   function skyAt(phase) {
     for (let i = 0; i < SKY.length - 1; i++) {
       const a = SKY[i], b = SKY[i + 1];
@@ -330,14 +309,24 @@
     const st = document.createElement('style');
     st.id = 'plusCSS';
     st.textContent = `
-.fx-event-stack{position:absolute;top:max(68px,calc(env(safe-area-inset-top) + 60px));left:max(12px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:14px;width:min(76vw,310px);max-height:60vh;overflow-y:auto;scrollbar-width:none;pointer-events:none!important;z-index:12}
+.fx-event-stack{position:absolute;top:max(68px,calc(env(safe-area-inset-top) + 60px));left:max(12px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:14px;width:min(76vw,310px);max-height:60vh;overflow-y:auto;scrollbar-width:none;pointer-events:none!important;z-index:1}
 .fx-event-stack::-webkit-scrollbar{display:none}
+.fx-death-screen{position:absolute;inset:0;z-index:3500;display:grid;place-items:center;padding:20px;background:rgba(10,5,3,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:fxDeathScreen 2.5s ease both}
+.fx-death-screen[hidden]{display:none}
+.fx-death-panel{width:min(86vw,380px);padding:clamp(18px,4vmin,30px);background:#21131c;border:3px solid rgba(200,74,26,.9);box-shadow:4px 4px 0 rgba(10,5,3,.75);text-align:center}
+.fx-death-title{margin:0 0 12px;color:#ff6b4a;font:700 clamp(14px,3vmin,22px)/1.4 'Press Start 2P','Courier New',monospace;text-shadow:2px 2px 0 #0a0503}
+.fx-death-copy{margin:0 0 18px;color:#f5e8d8;font:700 clamp(8px,1.5vmin,11px)/1.6 'Press Start 2P','Courier New',monospace}
+.fx-death-track{position:relative;height:24px;overflow:hidden;background:rgba(255,255,255,.08);border:2px solid rgba(107,58,26,.75);box-shadow:2px 2px 0 rgba(10,5,3,.5);image-rendering:pixelated}
+.fx-death-fill{position:absolute;inset:0 auto 0 0;width:100%;background:repeating-linear-gradient(90deg,#e8701a 0px,#e8701a 8px,#f5a842 8px,#f5a842 16px,#c84a1a 16px,#c84a1a 24px);animation:fxDeathDrain 2.5s linear forwards}
+@keyframes fxDeathDrain{to{width:0}}
+@keyframes fxDeathScreen{0%{opacity:0}10%,82%{opacity:1}100%{opacity:0}}
 .fx-notifications{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;gap:14px;width:100%;pointer-events:none!important}
 .fx-tray{position:relative;inset:auto;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;pointer-events:none!important}
 .fx-chip{position:relative;display:flex;align-items:center;gap:1vmin;width:100%;min-width:0;padding:8px 12px 10px;background:rgba(30,20,15,.86);border:max(2px,.3vmin) solid var(--c);box-shadow:max(2px,.3vmin) max(2px,.3vmin) 0 rgba(10,5,3,.55);font:700 clamp(7px,1.15vmin,10px)/1.35 'Press Start 2P','Courier New',monospace;color:#f5e8d8;text-shadow:.2vmin .2vmin 0 #0a0503;animation:fxChipIn .2s steps(4) both}
 .fx-chip canvas,.fx-chip img{flex:none;object-fit:contain;image-rendering:pixelated}
 .fx-chip b{margin-left:auto;color:var(--c);font-weight:700}
 .fx-chip.warn{animation:fxBlink .4s steps(1) infinite}
+.fx-wind-warning{padding:4px 0;color:#cfe8ff;font:700 clamp(7px,1.15vmin,10px)/1.35 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503;animation:fxBlink .4s steps(1) infinite}
 .fx-bar{position:absolute;left:0;right:0;bottom:0;height:max(3px,.5vmin);background:rgba(255,255,255,.08)}
 .fx-bar u{display:block;height:100%;width:100%;background:var(--c);text-decoration:none}
 .fx-challenge{position:relative;display:grid;gap:9px;width:100%;padding:13px 14px 15px;background:rgba(25,16,31,.94);border:2px solid #ffd51b;box-shadow:3px 3px 0 rgba(8,4,14,.8);color:#f5e8d8;font:700 clamp(7px,1vmin,9px)/1.5 'Press Start 2P','Courier New',monospace;text-shadow:1px 1px 0 #0a0503}
@@ -368,20 +357,15 @@
 .fx-pausebtn::after{right:30%}
 .fx-pausebtn:hover,.fx-pausebtn:focus-visible{filter:brightness(1.2);outline:0}
 .fx-pausebtn:active{transform:translate(2px,2px)}
-.fx-rebirthbtn{position:absolute;top:2vmin;left:calc(2vmin + 10vmin);width:clamp(38px,7vmin,58px);height:clamp(38px,7vmin,58px);padding:3px;background:#3d2817;border:2px solid #744018;box-shadow:2px 2px 0 #0a0503;cursor:pointer;z-index:12;-webkit-tap-highlight-color:transparent}
-.fx-rebirthbtn img{display:block;width:100%;height:100%;image-rendering:pixelated}
-.fx-rebirthbtn span{position:absolute;right:-5px;bottom:-5px;min-width:16px;padding:2px 3px;background:#170b28;border:1px solid #ffd51b;color:#ffd51b;font:700 8px 'Press Start 2P',monospace;text-align:center}
-.fx-rebirthbtn:disabled{filter:grayscale(.85);opacity:.65;cursor:pointer}
-.fx-rebirthbtn:disabled:hover{animation:fxRebirthNope .32s ease-in-out}
-.fx-rebirthbtn:disabled:focus-visible{outline:2px dashed #ffd51b;outline-offset:2px}
-@keyframes fxRebirthNope{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
-.fx-rebirthbtn:not(:disabled):hover,.fx-rebirthbtn:not(:disabled):focus-visible{filter:brightness(1.2);outline:2px dashed #ffd51b;outline-offset:2px}
+.fx-lives{position:absolute;top:2vmin;left:calc(2vmin + 10vmin);display:flex;align-items:center;gap:4px;z-index:12}
+.fx-lives img{display:block;width:clamp(24px,4.5vmin,36px);height:clamp(24px,4.5vmin,36px);image-rendering:pixelated}
 @media (max-width:700px){
   .fx-pausebtn{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px;background:rgba(61,40,23,.96);border:3px solid #ffd51b;z-index:30}
   .fx-pausebtn::before,.fx-pausebtn::after{width:18%;background:#fff4d6}
   .fx-pausebtn::before{left:25%}
   .fx-pausebtn::after{right:25%}
-  .fx-rebirthbtn{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 76px);width:50px;height:50px}
+  .fx-lives{top:max(12px,env(safe-area-inset-top));left:calc(max(12px,env(safe-area-inset-left)) + 76px);gap:2px}
+  .fx-lives img{width:26px;height:26px}
 }
 
 .fx-pause{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:2vmin;background:rgba(10,5,20,.84)}
@@ -425,8 +409,10 @@
       this.wiped = false;
       this.dirty = false;
       this.quality = 1;
-      this.rebirths = 0;
-      this.rebirthMultiplier = 1;
+      this.health = 3;
+      this.hearts = [];
+      this.restartTimer = null;
+      this.deathAnimationRemaining = 0;
       this.clock = 0;
       this.sky = skyAt(CONFIG.dayNight.startPhase);
       this.phaseName = null;
@@ -464,6 +450,7 @@
     }
     teardown() {
       this.dead = true;
+      if (this.restartTimer !== null) clearTimeout(this.restartTimer);
       if (this.g.state === 'paused') this.g.state = 'playing';
       document.querySelectorAll('[data-plus-ui]').forEach((n) => n.remove());
     }
@@ -519,19 +506,38 @@
       if (!CONFIG.features.pause) this.pauseBtn.hidden = true;
       hud.appendChild(this.pauseBtn);
 
-      this.rebirthButton = el('button', 'fx-rebirthbtn');
-      this.rebirthButton.type = 'button';
-      this.rebirthButton.disabled = true;
-      this.rebirthButton.setAttribute('aria-label', `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`);
-      this.rebirthButton.title = `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`;
-      const rebirthIcon = el('img');
-      rebirthIcon.src = 'Sprites/rebirth_icon.svg';
-      rebirthIcon.alt = '';
-      rebirthIcon.setAttribute('aria-hidden', 'true');
-      this.rebirthCount = el('span');
-      this.rebirthCount.textContent = '0';
-      this.rebirthButton.append(rebirthIcon, this.rebirthCount);
-      hud.appendChild(this.rebirthButton);
+      this.lives = el('div', 'fx-lives');
+      this.lives.setAttribute('role', 'img');
+      this.lives.setAttribute('aria-label', 'Health: 3 of 3');
+      for (let i = 0; i < 3; i++) {
+        const heart = el('img');
+        heart.src = 'Sprites/heart_full.svg';
+        heart.alt = '';
+        heart.setAttribute('aria-hidden', 'true');
+        this.hearts.push(heart);
+        this.lives.appendChild(heart);
+      }
+      hud.appendChild(this.lives);
+      this.updateHealth();
+
+      this.deathScreen = el('div', 'fx-death-screen');
+      this.deathScreen.hidden = true;
+      this.deathScreen.setAttribute('role', 'alertdialog');
+      this.deathScreen.setAttribute('aria-modal', 'true');
+      this.deathScreen.setAttribute('aria-label', 'Round over');
+      const deathPanel = el('section', 'fx-death-panel');
+      const deathTitle = el('h2', 'fx-death-title');
+      deathTitle.textContent = 'ROUND OVER';
+      const deathCopy = el('p', 'fx-death-copy');
+      deathCopy.textContent = 'No hearts left. Restarting...';
+      const deathTrack = el('div', 'fx-death-track');
+      deathTrack.setAttribute('aria-hidden', 'true');
+      const deathFill = el('div', 'fx-death-fill');
+      this.deathFill = deathFill;
+      deathTrack.appendChild(deathFill);
+      deathPanel.append(deathTitle, deathCopy, deathTrack);
+      this.deathScreen.appendChild(deathPanel);
+      layer.appendChild(this.deathScreen);
 
       this.panel = el('div', 'fx-pause');
       this.panel.hidden = true;
@@ -551,7 +557,7 @@
           <section class="fx-controls" aria-labelledby="fxControlsTitle">
             <h3 id="fxControlsTitle">CONTROLS</h3>
             <div class="fx-control-row"><span>Move</span><b>A / D or ← / →</b></div>
-            <div class="fx-control-row"><span>Touch</span><b>Drag the player</b></div>
+            <div class="fx-control-row"><span>Touch</span><b>Swipe anywhere to move</b></div>
             <div class="fx-control-row"><span>Pause</span><b>P</b></div>
             <div class="fx-control-row"><span>Resume</span><b>P or Esc</b></div>
           </section>
@@ -572,7 +578,6 @@
     bind() {
       const g = this.g;
       this.pauseBtn.addEventListener('click', (e) => { e.stopPropagation(); this.togglePause(); });
-      this.rebirthButton.addEventListener('click', () => this.rebirth());
       this.ui.resume.addEventListener('click', () => this.resume());
       this.ui.vol.addEventListener('input', () => {
         if (g.audio) g.audio.setVolume(Number(this.ui.vol.value) / 100);
@@ -662,8 +667,7 @@
         achievements: this.unlocked,
         clock: this.clock,
         volume: g.audio ? g.audio.volume : 0.3,
-        quality: this.quality,
-        rebirths: this.rebirths
+        quality: this.quality
       };
     }
     save() {
@@ -676,8 +680,6 @@
       const g = this.g, shop = window.shop;
       const d = CONFIG.features.persistence ? data : null;
       if (d && d.v === 1) {
-        this.rebirths = Math.floor(num(d.rebirths, 0, 1e6));
-        this.rebirthMultiplier = 1 + this.rebirths * 0.1;
         g.money = Math.floor(num(d.money, 0, 1e15));
         g.level = Math.floor(num(d.level, 1, 9999, 1));
         g.xpToNext = Math.floor(num(d.xpToNext, 1, 1e12, 250));
@@ -709,58 +711,69 @@
       }
       this.stats.sessions++;
       this.restored = true;
-      this.updateRebirthButton();
       g.updateHUD();
     }
-    updateRebirthButton() {
-      const unlocked = this.g.level >= CONFIG.rebirthLevel;
-      this.rebirthButton.disabled = !unlocked;
-      this.rebirthCount.textContent = String(this.rebirths);
-      this.rebirthButton.setAttribute('aria-label', unlocked
-        ? `Rebirth, current rebirth count ${this.rebirths}`
-        : `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`);
-      this.rebirthButton.title = unlocked
-        ? `Rebirth now: reset coins, level, upgrades, and leaf varieties for +10% permanent earnings. Current bonus: +${Math.round((this.rebirthMultiplier - 1) * 100)}%.`
-        : `Nuh uh, you can't rebirth yet! Reach level ${CONFIG.rebirthLevel}.`;
+    updateHealth() {
+      for (let i = 0; i < this.hearts.length; i++) {
+        this.hearts[i].src = i < this.health ? 'Sprites/heart_full.svg' : 'Sprites/heart_empty.svg';
+      }
+      this.lives.setAttribute('aria-label', `Health: ${this.health} of 3`);
     }
-    rebirth() {
-      const g = this.g, shop = window.shop;
-      if (g.level < CONFIG.rebirthLevel || !shop) return;
-      const nextBonus = Math.round((this.rebirthMultiplier + 0.1) * 100);
-      if (!window.confirm(`Rebirth now? This resets your coins, level, upgrades, and leaf varieties. You will keep achievements and gain +10% permanent earnings (next bonus: +${nextBonus}%).`)) return;
+    takeDamage() {
+      if (this.health <= 0 || this.g.state !== 'playing') return;
+      this.health--;
+      this.updateHealth();
+      if (this.health > 0) return;
 
-      this.rebirths++;
-      this.rebirthMultiplier = 1 + this.rebirths * 0.1;
+      this.g.state = 'gameover';
+      this.deathAnimationRemaining = 500;
+      this.restartTimer = setTimeout(() => {
+        this.restartTimer = null;
+        if (this.dead || this.g.state !== 'gameover') return;
+        this.deathScreen.hidden = false;
+        this.deathFill.style.animation = 'none';
+        void this.deathScreen.offsetWidth;
+        this.deathFill.style.animation = '';
+        this.restartTimer = setTimeout(() => {
+          this.restartTimer = null;
+          if (!this.dead && this.g.state === 'gameover') this.restartRound();
+        }, 2500);
+      }, this.deathAnimationRemaining);
+    }
+    restartRound() {
+      const g = this.g;
       g.money = 0;
       g.level = 1;
       g.xp = 0;
       g.xpToNext = 250;
       g.combo = 0;
       g.comboTimer = 0;
-      for (const leaf of g.leaves) {
-        const index = g.entities.indexOf(leaf);
-        if (index >= 0) g.entities.splice(index, 1);
-      }
-      g.leaves.length = 0;
+      g.spawnTimer = 0;
+      g.entities = [];
+      g.leaves = [];
+      g.particles = [];
+      g.floatingStats = [];
+      g.keys = {};
+      g.touchActive = false;
+      g.touchX = null;
+      g.setup();
+
       for (const kind of Object.keys(this.chips)) this.removeChip(kind);
       this.active = {};
       this.challenge = null;
       this.challengeCard.hidden = true;
       this.challengeDelay = 60;
-      shop.levels = {};
-      shop.unlockedLeaves = {};
-      g.applyShopLevels({ leafTypes: [] });
-      shop.render();
+      this.setWindChip(false);
+      this.wind = { state: 'idle', t: range(CONFIG.wind.firstDelay), dur: 1, dir: 1, power: 0, env: 0, cur: 0, acc: 0 };
+      this.cooldown = 6;
+      this.health = 3;
+      this.deathAnimationRemaining = 0;
+      this.updateHealth();
+      this.deathScreen.hidden = true;
+      g.state = 'playing';
       g.updateHUD();
-      this.updateRebirthButton();
       this.dirty = true;
       this.save();
-      this.toast({
-        name: `REBIRTH ${this.rebirths}`,
-        desc: `Permanent earnings bonus is now +${Math.round((this.rebirthMultiplier - 1) * 100)}%.`,
-        reward: 0
-      }, 'REBIRTH COMPLETE');
-      if (g.audio) g.audio.playCombo(14);
     }
     shopSignature() {
       const s = window.shop;
@@ -813,13 +826,12 @@
        Shop purchases rebuild shopBonuses from scratch, so we never fight them. */
     applyModifiers() {
       const g = this.g, b = g.shopBonuses, p = g.player, a = this.active;
-      const snap = { fall: b.fallSpeed, mag: b.magnet, magRange: b.magnetRange, drop: b.dropRate, val: b.leafValue, cb: p ? p.catchBonus : 0 };
+      const snap = { fall: b.fallSpeed, drop: b.dropRate, val: b.leafValue, cb: p ? p.catchBonus : 0 };
       if (a.warp) b.fallSpeed *= 0.45;
-      if (a.magnet) { b.magnet += 1.1; b.magnetRange = Math.max(b.magnetRange, 480); if (p) p.catchBonus += 22; }
       if (a.midas) b.leafValue *= 2.5;
       if (a.storm) b.dropRate *= 2.6;
       return () => {
-        b.fallSpeed = snap.fall; b.magnet = snap.mag; b.magnetRange = snap.magRange;
+        b.fallSpeed = snap.fall;
         b.dropRate = snap.drop; b.leafValue = snap.val;
         if (p) p.catchBonus = snap.cb;
       };
@@ -1061,18 +1073,15 @@
       }
     }
     setWindChip(show, warn) {
-      if (!show) { if (this.windChip) { this.windChip.remove(); this.windChip = null; } return; }
-      if (!this.windChip) {
-        const chip = el('div', 'fx-chip');
-        chip.style.setProperty('--c', '#cfe8ff');
-        const name = el('span');
-        chip.append(iconCanvas('wind', 22, '#cfe8ff'), name);
-        chip.nameEl = name;
-        this.tray.prepend(chip);
-        this.windChip = chip;
+      if (!show || !warn) {
+        if (this.windChip) { this.windChip.remove(); this.windChip = null; }
+        return;
       }
-      this.windChip.nameEl.textContent = this.wind.dir > 0 ? 'GUST >>>' : '<<< GUST';
-      this.windChip.classList.toggle('warn', !!warn);
+      if (!this.windChip) {
+        this.windChip = el('div', 'fx-wind-warning');
+        this.tray.prepend(this.windChip);
+      }
+      this.windChip.textContent = 'Gust incoming';
     }
 
     /* ---------- wind ---------- */
@@ -1132,17 +1141,7 @@
       const phase = ((this.clock / CONFIG.dayNight.length) + CONFIG.dayNight.startPhase) % 1;
       const s = skyAt(phase);
       this.sky = s;
-      if (this.phaseName !== s.name) {
-        if (this.phaseName !== null) {
-          const [text] = PHASE_TEXT[s.name];
-          this.toast({
-            name: text,
-            desc: 'The leaves are changing with the light.',
-            reward: 0
-          }, 'WORLD EVENT');
-        }
-        this.phaseName = s.name;
-      }
+      this.phaseName = s.name;
     }
 
     /* ---------- drawing ---------- */
@@ -1217,15 +1216,9 @@
   /* ===================================================================
    * Patch Game.prototype. Each wrapper falls straight through to vanilla
    * whenever the controller is missing or has unplugged itself.
-   * =================================================================== */
-  const origStart = Game.prototype.start;
-  const origApplyShopLevels = Game.prototype.applyShopLevels;
-  Game.prototype.applyShopLevels = function (levels = {}) {
-    origApplyShopLevels.call(this, levels);
-    if (this.fx && !this.fx.dead) this.shopBonuses.leafValue *= this.fx.rebirthMultiplier;
-  };
-
-  Game.prototype.start = function () {
+    * =================================================================== */
+   const origStart = Game.prototype.start;
+   Game.prototype.start = function () {
     origStart.call(this);
     try {
       this.fx = new Plus(this);
@@ -1239,7 +1232,16 @@
   const origUpdate = Game.prototype.update;
   Game.prototype.update = function (dt) {
     const fx = this.fx;
-    if (!fx || fx.dead || this.state !== 'playing') return origUpdate.call(this, dt);
+    if (!fx || fx.dead) return origUpdate.call(this, dt);
+    if (this.state === 'gameover') {
+      if (fx.deathAnimationRemaining > 0 && this.player) {
+        const catchStep = Math.min(Math.max(0, dt), fx.deathAnimationRemaining / 1000);
+        this.player.updateCatch(catchStep);
+        fx.deathAnimationRemaining -= catchStep * 1000;
+      }
+      return origUpdate.call(this, dt);
+    }
+    if (this.state !== 'playing') return origUpdate.call(this, dt);
     const step = Math.min(dt, 0.1);
     let restore = null;
     try { fx.tick(step); restore = fx.applyModifiers(); } catch (e) { fx.fail('tick', e); }
@@ -1275,10 +1277,19 @@
   Game.prototype.collectLeaf = function (leaf, mx, my, clicked) {
     const fx = this.fx;
     if (!fx || fx.dead) return origCollect.call(this, leaf, mx, my, clicked);
+    if (this.state !== 'playing') return;
     if (leaf.isPowerUp) { fx.safe('collectPower', () => fx.collectPower(leaf, mx, my)); return; }
     const before = this.money;
     const result = origCollect.call(this, leaf, mx, my, clicked);
     fx.safe('onCatch', () => fx.onCatch(leaf, this.money - before));
+    return result;
+  };
+
+  const origCollectHazard = Game.prototype.collectHazard;
+  Game.prototype.collectHazard = function (hazard, mx, my) {
+    const result = origCollectHazard.call(this, hazard, mx, my);
+    const fx = this.fx;
+    if (fx && !fx.dead) fx.safe('takeDamage', () => fx.takeDamage());
     return result;
   };
 
@@ -1287,7 +1298,6 @@
     origLevelUp.call(this);
     const fx = this.fx;
     if (fx && !fx.dead) fx.safe('levelUp', () => {
-      fx.updateRebirthButton();
       fx.dirty = true;
       fx.checkAchievements();
       fx.save();

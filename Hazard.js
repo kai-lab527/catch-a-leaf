@@ -11,8 +11,27 @@ class Hazard extends Leaf {
   }
 
   loadSprite() {
-    this.sprite = Hazard.generateSprite();
-    this.spriteLoaded = true;
+    if (Hazard.sprite) {
+      this.sprite = Hazard.sprite;
+      this.spriteLoaded = true;
+      return;
+    }
+    const image = new Image();
+    image.onload = () => {
+      Hazard.sprite = image;
+      this.sprite = image;
+      this.spriteLoaded = true;
+    };
+    image.onerror = () => {
+      this.sprite = Hazard.generateSprite();
+      this.spriteLoaded = true;
+    };
+    image.src = 'Sprites/unknown_leaf.svg';
+    if (image.complete && image.naturalWidth) {
+      Hazard.sprite = image;
+      this.sprite = image;
+      this.spriteLoaded = true;
+    }
   }
 
   draw(ctx) {

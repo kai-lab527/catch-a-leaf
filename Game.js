@@ -22,14 +22,15 @@ class Game {
 
     this.shopLevels = {};
     this.shopBonuses = {
-      leafValue: 1, moveSpeed: 1, catchArea: 0, magnet: 0, magnetRange: 0,
+      leafValue: 1, moveSpeed: 1, catchArea: 0,
       dropRate: 1, fallSpeed: 1, blueChance: 0.008, comboBonus: 1, leafTypes: []
     };
 
     this.keys = {};
 
     this.touchX = null;
-    this.touchOffsetX = 0;
+    this.touchStartX = 0;
+    this.touchStartPlayerX = 0;
     this.touchActive = false;
 
     this.audio = new AudioManager();
@@ -156,14 +157,8 @@ class Game {
       if (this.state !== 'playing') return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
-      const hitPadding = Math.max(12, this.player.width * 0.25);
-      if (touchX < this.player.x - hitPadding ||
-          touchX > this.player.x + this.player.width + hitPadding ||
-          touchY < this.player.y - hitPadding ||
-          touchY > this.player.y + this.player.height + hitPadding) return;
-      this.touchOffsetX = touchX - this.player.x;
+      this.touchStartX = touch.clientX - rect.left;
+      this.touchStartPlayerX = this.player.x;
       this.touchX = this.player.x;
       this.touchActive = true;
     }, { passive: false });
@@ -173,21 +168,19 @@ class Game {
       if (this.state !== 'playing' || !this.touchActive) return;
       const rect = this.canvas.getBoundingClientRect();
       const touch = e.changedTouches[0];
-      this.touchX = touch.clientX - rect.left - this.touchOffsetX;
+      this.touchX = this.touchStartPlayerX + (touch.clientX - rect.left - this.touchStartX);
     }, { passive: false });
 
     this.canvas.addEventListener('touchend', (e) => {
       e.preventDefault();
       this.touchActive = false;
       this.touchX = null;
-      this.touchOffsetX = 0;
     }, { passive: false });
 
     this.canvas.addEventListener('touchcancel', (e) => {
       e.preventDefault();
       this.touchActive = false;
       this.touchX = null;
-      this.touchOffsetX = 0;
     }, { passive: false });
   }
 
@@ -255,10 +248,6 @@ class Game {
       leafValue: 1 + (levels.piggy || 0) * 0.5,
       moveSpeed: 1 + (levels.sneakers || 0) * 0.15,
       catchArea: (levels.bucket || 0) * 5,
-      magnet: (levels.sticky || 0) * 0.24 + (levels.leafRadar || 0) * 0.08,
-      magnetRange: (levels.sticky || 0) + (levels.leafRadar || 0) > 0
-        ? 180 + (levels.sticky || 0) * 40 + (levels.leafRadar || 0) * 100
-        : 0,
       dropRate: 1 + (levels.grumpy || 0) * 0.3,
       fallSpeed: Math.max(0.6, 1 - (levels.slowpoke || 0) * 0.08),
       blueChance: 0.008 * (1 + (levels.blueberry || 0)),
@@ -483,14 +472,6 @@ class Game {
       }
 
       leaf.update(dt * this.shopBonuses.fallSpeed, h, 1);
-      if (!leaf.isHazard && this.shopBonuses.magnet > 0 && this.shopBonuses.magnetRange > 0) {
-        const playerCenter = this.player.x + this.player.width / 2;
-        const leafCenter = leaf.x + leaf.width / 2;
-        const distance = playerCenter - leafCenter;
-        if (Math.abs(distance) <= this.shopBonuses.magnetRange) {
-          leaf.x += Math.max(-180, Math.min(180, distance)) * this.shopBonuses.magnet * dt;
-        }
-      }
       const b = leaf.getBounds();
       if (b.x < catchBounds.x + catchBounds.width && b.x + b.width > catchBounds.x &&
           b.y < catchBounds.y + catchBounds.height && b.y + b.height > catchBounds.y) {

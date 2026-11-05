@@ -18,13 +18,11 @@ class Shop {
       { id: 'piggy', code: 'PP', icon: 0, name: 'Piggy Pockets', effect: '+50% leaf value', copy: 'Stuff more leaf-value into every pocket.', price: 500, max: 5, color: '#f5c842' },
       { id: 'sneakers', code: 'SQ', icon: 1, name: 'Squirrel Sneakers', effect: '+15% move speed', copy: 'Run like a squirrel with somewhere to be.', price: 555, max: 5, color: '#29d5d5' },
       { id: 'bucket', code: 'GB', icon: 2, name: "Granny's Giant Bucket", effect: '+15% catch area', copy: 'A bigger bin means fewer almost-catches.', price: 600, max: 3, color: '#9bda62' },
-      { id: 'sticky', code: 'SF', icon: 3, name: 'Sticky Fingers', effect: 'Leaves drift to you', copy: 'Leaves get a little clingy. It is fine.', price: 900, max: 3, color: '#35d9d2' },
-      { id: 'grumpy', code: 'GC', icon: 4, name: 'Grumpy Cloud', effect: '+30% leaf drops', copy: 'Summon a cloud with a very generous opinion.', price: 450, max: 5, color: '#a4e36e' },
-      { id: 'slowpoke', code: 'SW', icon: 5, name: 'Slowpoke Feather', effect: '-8% fall speed', copy: 'Give yourself an extra blink to catch it.', price: 650, max: 5, color: '#b3e553' },
-      { id: 'blueberry', code: 'BL', icon: 6, name: 'Blueberry Luck', effect: 'More blue leaves', copy: 'A suspiciously blue improvement.', price: 800, max: 5, color: '#22c9f2' },
-      { id: 'spicy', code: 'SS', icon: 7, name: 'Spicy Streak', effect: '+25% combo bonus', copy: 'Turn a good streak into a spicy streak.', price: 700, max: 5, color: '#ff920f' },
-      { id: 'comboClock', code: 'CC', icon: 8, name: 'Combo Clock', effect: '+0.4s combo time', copy: 'Gives your streak more time before it fades.', price: 750, max: 5, color: '#ffca55' },
-      { id: 'leafRadar', code: 'LR', icon: 9, name: 'Leaf Radar', effect: '+100px magnet range', copy: 'Adds a gentle magnet and extends its reach. Stacks with Sticky Fingers.', price: 1000, max: 5, color: '#67d6d2' }
+      { id: 'grumpy', code: 'GC', icon: 3, name: 'Grumpy Cloud', effect: '+30% leaf drops', copy: 'Summon a cloud with a very generous opinion.', price: 450, max: 5, color: '#a4e36e' },
+      { id: 'slowpoke', code: 'SW', icon: 4, name: 'Slowpoke Feather', effect: '-8% fall speed', copy: 'Give yourself an extra blink to catch it.', price: 650, max: 5, color: '#b3e553' },
+      { id: 'blueberry', code: 'BL', icon: 5, name: 'Blueberry Luck', effect: 'More blue leaves', copy: 'A suspiciously blue improvement.', price: 800, max: 5, color: '#22c9f2' },
+      { id: 'spicy', code: 'SS', icon: 6, name: 'Spicy Streak', effect: '+25% combo bonus', copy: 'Turn a good streak into a spicy streak.', price: 700, max: 5, color: '#ff920f' },
+      { id: 'comboClock', code: 'CC', icon: 7, name: 'Combo Clock', effect: '+0.4s combo time', copy: 'Gives your streak more time before it fades.', price: 750, max: 5, color: '#ffca55' }
     ];
     this.varieties = [
       { id: 'fern', name: 'Fern Frond', effect: 'Worth 6¢ per catch', copy: 'Add fern fronds to the falling-leaf pool.', price: 1000, sprite: 'fern_frond.png', color: '#83b84a' },

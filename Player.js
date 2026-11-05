@@ -17,7 +17,12 @@ class Player extends GameObject {
     this.tilt = 0;
     this.targetTilt = 0;
     this.tiltSpeed = 8;
-    
+
+    // Real-time 3D basket (Basket3D.js). null when three.js / WebGL is missing,
+    // in which case everything below falls back to the PNG sprites.
+    this.basket3d = (typeof Basket3D !== 'undefined') ? Basket3D.shared() : null;
+    this._lastDraw = 0;
+
     this.loadSprite();
   }
 
@@ -131,7 +136,8 @@ class Player extends GameObject {
   }
 
   draw(ctx) {
-    if (!this.spriteLoaded) return;
+    const b3 = this.basket3d;
+    if (!b3 && !this.spriteLoaded) return;
     ctx.save();
     const cx = this.x + this.width / 2;
     const cy = this.y + this.height / 2;
@@ -149,7 +155,20 @@ class Player extends GameObject {
     ctx.shadowColor = 'rgba(255, 200, 100, 0.3)';
 
     ctx.imageSmoothingEnabled = false;
-    const sprite = this.catchFlashTimer > 0 ? this.spriteClosed : this.spriteOpen;
+    let sprite;
+    if (b3) {
+      // Own clock so the 3D animation stays smooth even if the game loop skips updateCatch().
+      const now = performance.now();
+      const dt = this._lastDraw ? Math.min(0.05, (now - this._lastDraw) / 1000) : 0.016;
+      this._lastDraw = now;
+      sprite = b3.update(dt, {
+        closed: this.catchFlashTimer > 0,
+        hazard: this.hazardCatchTimer > 0,
+        tilt: this.tilt
+      });
+    } else {
+      sprite = this.catchFlashTimer > 0 ? this.spriteClosed : this.spriteOpen;
+    }
     ctx.drawImage(sprite, -half, -half, size, size);
 
     if (this.caughtLeafTimer > 0 && this.caughtLeafSprite) {

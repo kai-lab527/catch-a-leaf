@@ -4,15 +4,15 @@
     piggy: 0,
     sneakers: 1,
     bucket: 2,
-    sticky: 3,
-    grumpy: 4,
-    slowpoke: 5,
-    blueberry: 6,
-    spicy: 7
+    grumpy: 3,
+    slowpoke: 4,
+    blueberry: 5,
+    spicy: 6,
+    comboClock: 7
   };
   const customIcons = {
     comboClock: 'Sprites/combo_clock_icon.svg',
-    leafRadar: 'Sprites/leaf_radar_icon.svg'
+    grumpy: 'Sprites/cloud.png'
   };
 
   function applyIcons() {
@@ -28,7 +28,7 @@
       icon.setAttribute('aria-hidden', 'true');
       if (customIcon) {
         icon.style.backgroundImage = `url('${customIcon}')`;
-        icon.style.backgroundSize = 'contain';
+        icon.style.backgroundSize = card.dataset.shopItem === 'grumpy' ? '200% auto' : 'contain';
         icon.style.backgroundPosition = 'center';
       } else if (index !== undefined) {
         icon.style.removeProperty('background-image');
@@ -42,7 +42,7 @@
     const selected = shop.item ? shop.item() : null;
     if (detail && selected && shop.category === 'upgrades' && customIcons[selected.id]) {
       detail.style.backgroundImage = `url('${customIcons[selected.id]}')`;
-      detail.style.backgroundSize = 'contain';
+      detail.style.backgroundSize = selected.id === 'grumpy' ? '200% auto' : 'contain';
       detail.style.backgroundPosition = 'center';
       detail.textContent = '';
     } else if (detail && selected && shop.category === 'upgrades' && iconIndex[selected.id] !== undefined) {
